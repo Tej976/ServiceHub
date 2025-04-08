@@ -20,7 +20,9 @@ import com.google.firebase.database.ValueEventListener;
 public class MainActivity extends AppCompatActivity {
 
     private String userId;
+    private String userType;
     private TextView welcomeTextView;
+    private TextView userTypeTextView;
     private Button viewProfileButton;
     private Button logoutButton;
 
@@ -36,37 +38,40 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize UI elements
         welcomeTextView = findViewById(R.id.textViewWelcome);
+        userTypeTextView = findViewById(R.id.textViewUserType);
         viewProfileButton = findViewById(R.id.buttonViewProfile);
         logoutButton = findViewById(R.id.buttonLogout);
 
-        // Get userId from intent
+        // Get userId and userType from intent
         userId = getIntent().getStringExtra("userId");
+        userType = getIntent().getStringExtra("userType");
 
-        // If userId is null, check if user is authenticated, otherwise redirect to login
-        if (userId == null) {
+        // If userId or userType is null, redirect to login
+        if (userId == null || userType == null) {
             FirebaseUser currentUser = mAuth.getCurrentUser();
             if (currentUser != null) {
-                // Try to find user ID in database
-                findUserIdByAuthUid(currentUser.getUid());
-            } else {
-                redirectToLogin();
-                return;
+                // User is authenticated but we don't have userId or userType - log out and redirect
+                mAuth.signOut();
             }
-        } else {
-            loadUserData();
+            redirectToLogin();
+            return;
         }
+
+        // Display user type
+        String displayType = userType.equals("customer") ? "Customer" : "Service Provider";
+        userTypeTextView.setText("Account Type: " + displayType);
+
+        // Load user data based on user type
+        loadUserData();
 
         // Set up view profile button
         viewProfileButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (userId != null) {
-                    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-                    intent.putExtra("userId", userId);
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(MainActivity.this, "User ID not available", Toast.LENGTH_SHORT).show();
-                }
+                Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+                intent.putExtra("userId", userId);
+                intent.putExtra("userType", userType);
+                startActivity(intent);
             }
         });
 
@@ -81,38 +86,16 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void findUserIdByAuthUid(String authUid) {
-        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
-        usersRef.orderByChild("authUid").equalTo(authUid).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    // Get the first matching user
-                    for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                        userId = userSnapshot.getKey();
-                        loadUserData();
-                        break;
-                    }
-                } else {
-                    // User exists in Auth but not in Database - unusual case
-                    Toast.makeText(MainActivity.this, "User profile not found", Toast.LENGTH_SHORT).show();
-                    redirectToLogin();
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(MainActivity.this, "Database error: " + databaseError.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-                redirectToLogin();
-            }
-        });
-    }
-
     private void loadUserData() {
-        // Get user's name from database
+        // Get user's name from database based on user type
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference userRef = database.getReference("users").child(userId);
+        DatabaseReference userRef;
+
+        if (userType.equals("customer")) {
+            userRef = database.getReference("customers").child(userId);
+        } else {
+            userRef = database.getReference("service_providers").child(userId);
+        }
 
         userRef.child("name").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

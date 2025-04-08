@@ -2,6 +2,7 @@ package com.example.realtimedb;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -67,12 +68,12 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        // Set up register text view
+        // Set up register text view - Direct to UserTypeSelectionActivity
         registerTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Navigate to registration screen
-                Intent intent = new Intent(LoginActivity.this, RegistrationActivity.class);
+                // Navigate to user type selection screen
+                Intent intent = new Intent(LoginActivity.this, UserTypeSelectionActivity.class);
                 startActivity(intent);
             }
         });
@@ -81,10 +82,17 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // Check if user is already signed in
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            redirectToMainActivity(currentUser.getUid());
+        try {
+            // Check if user is already signed in
+            FirebaseUser currentUser = mAuth.getCurrentUser();
+            if (currentUser != null) {
+                // Check user type and redirect accordingly
+                checkUserTypeAndRedirect(currentUser.getUid());
+            }
+        } catch (Exception e) {
+            // Log the error
+            Log.e("LoginActivity", "Error in onStart: " + e.getMessage());
+            Toast.makeText(this, "Error occurred: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -100,7 +108,7 @@ public class LoginActivity extends AppCompatActivity {
                                     Toast.LENGTH_SHORT).show();
 
                             if (user != null) {
-                                redirectToMainActivity(user.getUid());
+                                checkUserTypeAndRedirect(user.getUid());
                             }
                         } else {
                             // If sign in fails, display a message to the user
@@ -111,26 +119,47 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    private void redirectToMainActivity(String uid) {
-        // Get the userId from the Realtime Database using the Firebase Auth UID
-        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
-        usersRef.orderByChild("authUid").equalTo(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+    private void checkUserTypeAndRedirect(String authUid) {
+        // First check customers node
+        DatabaseReference customersRef = FirebaseDatabase.getInstance().getReference("customers");
+        customersRef.orderByChild("authUid").equalTo(authUid).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    // Get the first matching user
+                    // Found in customers
                     for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
                         String userId = userSnapshot.getKey();
-
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        intent.putExtra("userId", userId);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
-                        break;
+                        redirectToMainActivity(userId, "customer");
+                        return;
                     }
                 } else {
-                    // User exists in Firebase Auth but not in Database - unusual case
+                    // Not found in customers, check service providers
+                    checkServiceProviderAndRedirect(authUid);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(LoginActivity.this, "Database error: " + databaseError.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void checkServiceProviderAndRedirect(String authUid) {
+        DatabaseReference serviceProvidersRef = FirebaseDatabase.getInstance().getReference("service_providers");
+        serviceProvidersRef.orderByChild("authUid").equalTo(authUid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    // Found in service providers
+                    for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                        String userId = userSnapshot.getKey();
+                        redirectToMainActivity(userId, "service_provider");
+                        return;
+                    }
+                } else {
+                    // User not found in either node
                     Toast.makeText(LoginActivity.this, "User profile not found", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -141,5 +170,14 @@ public class LoginActivity extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void redirectToMainActivity(String userId, String userType) {
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        intent.putExtra("userId", userId);
+        intent.putExtra("userType", userType);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }

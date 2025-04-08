@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -28,13 +29,23 @@ public class RegistrationActivity extends AppCompatActivity {
     private EditText emailEditText;
     private EditText passwordEditText;
     private Button registerButton;
+    private TextView userTypeTextView;
 
     private FirebaseAuth mAuth;
+    private String userType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
+
+        // Get user type from intent
+        userType = getIntent().getStringExtra("userType");
+        if (userType == null) {
+            Toast.makeText(this, "User type not specified", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
@@ -46,6 +57,11 @@ public class RegistrationActivity extends AppCompatActivity {
         emailEditText = findViewById(R.id.editTextEmail);
         passwordEditText = findViewById(R.id.editTextPassword);
         registerButton = findViewById(R.id.registerButton);
+        userTypeTextView = findViewById(R.id.textViewUserType);
+
+        // Set user type text
+        String displayType = userType.equals("customer") ? "Customer" : "Service Provider";
+        userTypeTextView.setText("Register as " + displayType);
 
         registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,7 +119,7 @@ public class RegistrationActivity extends AppCompatActivity {
                             FirebaseUser firebaseUser = mAuth.getCurrentUser();
 
                             if (firebaseUser != null) {
-                                // Now save additional user info to Realtime Database
+                                // Now save additional user info to Realtime Database based on user type
                                 saveUserToDatabase(firebaseUser.getUid(), name, mobile, address, email);
                             }
                         } else {
@@ -123,10 +139,17 @@ public class RegistrationActivity extends AppCompatActivity {
         userMap.put("address", address);
         userMap.put("email", email);
         userMap.put("authUid", authUid);  // Store Firebase Auth UID to link accounts
+        userMap.put("userType", userType);
 
-        // Get Firebase reference
+        // Get Firebase reference based on user type
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference usersRef = database.getReference("users");
+        DatabaseReference usersRef;
+
+        if (userType.equals("customer")) {
+            usersRef = database.getReference("customers");
+        } else {
+            usersRef = database.getReference("service_providers");
+        }
 
         // Generate unique database ID
         String userId = usersRef.push().getKey();
@@ -146,9 +169,10 @@ public class RegistrationActivity extends AppCompatActivity {
                     emailEditText.getText().clear();
                     passwordEditText.getText().clear();
 
-                    // Start MainActivity with userId
+                    // Start MainActivity with userId and userType
                     Intent intent = new Intent(RegistrationActivity.this, MainActivity.class);
                     intent.putExtra("userId", userId);
+                    intent.putExtra("userType", userType);
                     startActivity(intent);
                     finish();
                 } else {

@@ -16,10 +16,12 @@ import com.google.firebase.database.ValueEventListener;
 public class ProfileActivity extends AppCompatActivity {
 
     private String userId;
+    private String userType;
     private TextView nameTextView;
     private TextView mobileTextView;
     private TextView addressTextView;
     private TextView emailTextView;
+    private TextView accountTypeTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,23 +33,36 @@ public class ProfileActivity extends AppCompatActivity {
         mobileTextView = findViewById(R.id.textViewMobileValue);
         addressTextView = findViewById(R.id.textViewAddressValue);
         emailTextView = findViewById(R.id.textViewEmailValue);
+        accountTypeTextView = findViewById(R.id.textViewAccountTypeValue);
 
-        // Get userId from intent
+        // Get userId and userType from intent
         userId = getIntent().getStringExtra("userId");
+        userType = getIntent().getStringExtra("userType");
 
-        if (userId == null) {
-            Toast.makeText(this, "User ID not found", Toast.LENGTH_SHORT).show();
+        if (userId == null || userType == null) {
+            Toast.makeText(this, "User information not found", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        // Get user data from Firebase
+        // Set account type
+        String displayType = userType.equals("customer") ? "Customer" : "Service Provider";
+        accountTypeTextView.setText(displayType);
+
+        // Get user data from Firebase based on user type
         loadUserProfile();
     }
 
     private void loadUserProfile() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference userRef = database.getReference("users").child(userId);
+        DatabaseReference userRef;
+
+        // Reference the correct node based on user type
+        if (userType.equals("customer")) {
+            userRef = database.getReference("customers").child(userId);
+        } else {
+            userRef = database.getReference("service_providers").child(userId);
+        }
 
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -56,7 +71,7 @@ public class ProfileActivity extends AppCompatActivity {
                     // Get user data
                     User user = dataSnapshot.getValue(User.class);
                     if (user != null) {
-                        // Display user info except password
+                        // Display user info
                         nameTextView.setText(user.getName());
                         mobileTextView.setText(user.getMobile());
                         addressTextView.setText(user.getAddress());

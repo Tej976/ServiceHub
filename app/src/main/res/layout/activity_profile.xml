@@ -53,6 +53,24 @@
                 android:textSize="18sp"
                 tools:text="John Doe" />
 
+            <!--Account Type-->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Account Type"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#757575" />
+
+            <TextView
+                android:id="@+id/textViewAccountTypeValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="16dp"
+                android:textSize="18sp"
+                tools:text="John Doe" />
+
             <!-- Mobile Section -->
             <TextView
                 android:layout_width="match_parent"
@@ -105,6 +123,7 @@
                 android:layout_marginTop="4dp"
                 android:textSize="18sp"
                 tools:text="123 Main Street, Anytown, CA 12345" />
+
 
         </LinearLayout>
 
