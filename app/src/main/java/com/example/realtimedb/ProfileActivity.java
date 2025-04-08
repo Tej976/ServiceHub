@@ -1,6 +1,8 @@
 package com.example.realtimedb;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -13,6 +15,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.List;
+
 public class ProfileActivity extends AppCompatActivity {
 
     private String userId;
@@ -22,6 +26,8 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView addressTextView;
     private TextView emailTextView;
     private TextView accountTypeTextView;
+    private TextView servicesTextView;
+    private LinearLayout servicesSection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +40,8 @@ public class ProfileActivity extends AppCompatActivity {
         addressTextView = findViewById(R.id.textViewAddressValue);
         emailTextView = findViewById(R.id.textViewEmailValue);
         accountTypeTextView = findViewById(R.id.textViewAccountTypeValue);
+        servicesTextView = findViewById(R.id.textViewServicesValue);
+        servicesSection = findViewById(R.id.servicesSection);
 
         // Get userId and userType from intent
         userId = getIntent().getStringExtra("userId");
@@ -48,6 +56,13 @@ public class ProfileActivity extends AppCompatActivity {
         // Set account type
         String displayType = userType.equals("customer") ? "Customer" : "Service Provider";
         accountTypeTextView.setText(displayType);
+
+        // Show services section only for service providers
+        if (userType.equals("service_provider")) {
+            servicesSection.setVisibility(View.VISIBLE);
+        } else {
+            servicesSection.setVisibility(View.GONE);
+        }
 
         // Get user data from Firebase based on user type
         loadUserProfile();
@@ -76,6 +91,23 @@ public class ProfileActivity extends AppCompatActivity {
                         mobileTextView.setText(user.getMobile());
                         addressTextView.setText(user.getAddress());
                         emailTextView.setText(user.getEmail());
+
+                        // Display services for service providers
+                        if (userType.equals("service_provider") && user.getServices() != null) {
+                            List<String> services = user.getServices();
+                            if (services.isEmpty()) {
+                                servicesTextView.setText("No services selected");
+                            } else {
+                                StringBuilder servicesText = new StringBuilder();
+                                for (int i = 0; i < services.size(); i++) {
+                                    servicesText.append(services.get(i));
+                                    if (i < services.size() - 1) {
+                                        servicesText.append(", ");
+                                    }
+                                }
+                                servicesTextView.setText(servicesText.toString());
+                            }
+                        }
                     }
                 } else {
                     Toast.makeText(ProfileActivity.this, "User not found", Toast.LENGTH_SHORT).show();

@@ -69,7 +69,7 @@
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="16dp"
                 android:textSize="18sp"
-                tools:text="John Doe" />
+                tools:text="Service Provider" />
 
             <!-- Mobile Section -->
             <TextView
@@ -121,9 +121,34 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
+                android:layout_marginBottom="16dp"
                 android:textSize="18sp"
                 tools:text="123 Main Street, Anytown, CA 12345" />
 
+            <!-- Services Section (visible only for service providers) -->
+            <LinearLayout
+                android:id="@+id/servicesSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Services Offered"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#757575" />
+
+                <TextView
+                    android:id="@+id/textViewServicesValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textSize="18sp"
+                    tools:text="Cleaning, Plumbing, Electrical" />
+            </LinearLayout>
 
         </LinearLayout>
 

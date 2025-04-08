@@ -1,24 +1,33 @@
 package com.example.realtimedb;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class User {
     private String name;
     private String mobile;
     private String address;
     private String email;
     private String userId;
-    private String authUid;  // Added to link with Firebase Auth UID
+    private String authUid;
+    private String userType;
+    private List<String> services;
 
-    // Required empty constructor for Firebase
+    // Empty constructor required for Firebase
     public User() {
+        // Initialize services to avoid null pointer exceptions
+        services = new ArrayList<>();
     }
 
-    public User(String name, String mobile, String address, String email, String userId, String authUid) {
+    public User(String name, String mobile, String address, String email, String userId, String authUid, String userType) {
         this.name = name;
         this.mobile = mobile;
         this.address = address;
         this.email = email;
         this.userId = userId;
         this.authUid = authUid;
+        this.userType = userType;
+        this.services = new ArrayList<>();
     }
 
     public String getName() {
@@ -67,5 +76,21 @@ public class User {
 
     public void setAuthUid(String authUid) {
         this.authUid = authUid;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
+    }
+
+    public List<String> getServices() {
+        return services;
+    }
+
+    public void setServices(List<String> services) {
+        this.services = services;
     }
 }

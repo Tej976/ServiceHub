@@ -3,8 +3,12 @@ package com.example.realtimedb;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,11 +19,13 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.FirebaseUser ;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class RegistrationActivity extends AppCompatActivity {
 
@@ -30,6 +36,16 @@ public class RegistrationActivity extends AppCompatActivity {
     private EditText passwordEditText;
     private Button registerButton;
     private TextView userTypeTextView;
+    private LinearLayout servicesLayout;
+
+    // Service provider specific UI elements
+    private Spinner servicesSpinner;
+    private Button addServiceButton;
+    private TextView selectedServicesTextView;
+
+    // Service options
+    private String[] serviceOptions = {"Select Service", "Cleaning", "Plumbing", "Electrical", "Carpentry", "Gardening", "Painting"};
+    private List<String> selectedServices = new ArrayList<>();
 
     private FirebaseAuth mAuth;
     private String userType;
@@ -42,7 +58,7 @@ public class RegistrationActivity extends AppCompatActivity {
         // Get user type from intent
         userType = getIntent().getStringExtra("userType");
         if (userType == null) {
-            Toast.makeText(this, "User type not specified", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "User  type not specified", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -58,10 +74,24 @@ public class RegistrationActivity extends AppCompatActivity {
         passwordEditText = findViewById(R.id.editTextPassword);
         registerButton = findViewById(R.id.registerButton);
         userTypeTextView = findViewById(R.id.textViewUserType);
+        servicesLayout = findViewById(R.id.servicesLayout);
+
+        // Initialize service provider specific UI elements
+        servicesSpinner = findViewById(R.id.spinnerServices);
+        addServiceButton = findViewById(R.id.buttonAddService);
+        selectedServicesTextView = findViewById(R.id.textViewSelectedServices);
 
         // Set user type text
         String displayType = userType.equals("customer") ? "Customer" : "Service Provider";
         userTypeTextView.setText("Register as " + displayType);
+
+        // Setup spinner and service selection (only for service providers)
+        if (userType.equals("service_provider")) {
+            servicesLayout.setVisibility(View.VISIBLE);
+            setupServiceSpinner();
+        } else {
+            servicesLayout.setVisibility(View.GONE);
+        }
 
         registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -101,10 +131,61 @@ public class RegistrationActivity extends AppCompatActivity {
                     return;
                 }
 
+                // For service providers, validate that at least one service is selected
+                if (userType.equals("service_provider") && selectedServices.isEmpty()) {
+                    Toast.makeText(RegistrationActivity.this,
+                            "Please select at least one service", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 // Register user with Firebase Authentication
                 createUserWithFirebaseAuth(name, mobile, address, email, password);
             }
         });
+    }
+
+    private void setupServiceSpinner() {
+        // Create adapter for spinner
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_dropdown_item, serviceOptions);
+
+        // Set the adapter to the spinner
+        servicesSpinner.setAdapter(adapter);
+
+        // Add button click listener to add selected service
+        addServiceButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String selectedService = servicesSpinner.getSelectedItem().toString();
+
+                // Check if the selected service is valid (not the placeholder)
+                if (!selectedService.equals("Select Service") && !selectedServices.contains(selectedService)) {
+                    selectedServices.add(selectedService);
+                    updateSelectedServicesText();
+                } else if (selectedService.equals("Select Service")) {
+                    Toast.makeText(RegistrationActivity.this,
+                            "Please select a valid service", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(RegistrationActivity.this,
+                            "Service already selected", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void updateSelectedServicesText() {
+        if (selectedServices.isEmpty()) {
+            selectedServicesTextView.setText("Selected Services: None");
+        } else {
+            StringBuilder servicesText = new StringBuilder("Selected Services: ");
+            for (int i = 0; i < selectedServices.size(); i++) {
+                servicesText.append(selectedServices.get(i));
+                if (i < selectedServices.size() - 1) {
+                    servicesText.append(", ");
+                }
+            }
+            selectedServicesTextView.setText(servicesText.toString());
+        }
     }
 
     private void createUserWithFirebaseAuth(final String name, final String mobile,
@@ -141,6 +222,11 @@ public class RegistrationActivity extends AppCompatActivity {
         userMap.put("authUid", authUid);  // Store Firebase Auth UID to link accounts
         userMap.put("userType", userType);
 
+        // Add services list for service providers
+        if (userType.equals("service_provider")) {
+            userMap.put("services", selectedServices);
+        }
+
         // Get Firebase reference based on user type
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference usersRef;
@@ -168,6 +254,8 @@ public class RegistrationActivity extends AppCompatActivity {
                     addressEditText.getText().clear();
                     emailEditText.getText().clear();
                     passwordEditText.getText().clear();
+                    selectedServices.clear();
+                    updateSelectedServicesText();
 
                     // Start MainActivity with userId and userType
                     Intent intent = new Intent(RegistrationActivity.this, MainActivity.class);
