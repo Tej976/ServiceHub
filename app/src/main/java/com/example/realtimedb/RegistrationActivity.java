@@ -12,6 +12,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -26,10 +29,15 @@ public class RegistrationActivity extends AppCompatActivity {
     private EditText passwordEditText;
     private Button registerButton;
 
+    private FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
+
+        // Initialize Firebase Auth
+        mAuth = FirebaseAuth.getInstance();
 
         // Initialize UI elements
         nameEditText = findViewById(R.id.editTextName);
@@ -71,26 +79,56 @@ public class RegistrationActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Register user
-                registerUser(name, mobile, address, email, password);
+                // Password strength check
+                if (password.length() < 6) {
+                    passwordEditText.setError("Password must be at least 6 characters long");
+                    return;
+                }
+
+                // Register user with Firebase Authentication
+                createUserWithFirebaseAuth(name, mobile, address, email, password);
             }
         });
     }
 
-    private void registerUser(String name, String mobile, String address, String email, String password) {
+    private void createUserWithFirebaseAuth(final String name, final String mobile,
+                                            final String address, final String email, final String password) {
+        // Create user in Firebase Authentication
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, get the newly created user
+                            FirebaseUser firebaseUser = mAuth.getCurrentUser();
+
+                            if (firebaseUser != null) {
+                                // Now save additional user info to Realtime Database
+                                saveUserToDatabase(firebaseUser.getUid(), name, mobile, address, email);
+                            }
+                        } else {
+                            // If sign in fails, display a message to the user
+                            Toast.makeText(RegistrationActivity.this, "Authentication failed: "
+                                    + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
+
+    private void saveUserToDatabase(String authUid, String name, String mobile, String address, String email) {
         // Create user object
         HashMap<String, Object> userMap = new HashMap<>();
         userMap.put("name", name);
         userMap.put("mobile", mobile);
         userMap.put("address", address);
         userMap.put("email", email);
-        userMap.put("password", password);
+        userMap.put("authUid", authUid);  // Store Firebase Auth UID to link accounts
 
         // Get Firebase reference
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference usersRef = database.getReference("users");
 
-        // Generate unique ID
+        // Generate unique database ID
         String userId = usersRef.push().getKey();
         userMap.put("userId", userId);
 
@@ -114,7 +152,7 @@ public class RegistrationActivity extends AppCompatActivity {
                     startActivity(intent);
                     finish();
                 } else {
-                    Toast.makeText(RegistrationActivity.this, "Registration failed. Please try again.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RegistrationActivity.this, "Database registration failed. Please try again.", Toast.LENGTH_SHORT).show();
                 }
             }
         });

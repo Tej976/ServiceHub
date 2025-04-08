@@ -5,20 +5,20 @@ public class User {
     private String mobile;
     private String address;
     private String email;
-    private String password;
     private String userId;
+    private String authUid;  // Added to link with Firebase Auth UID
 
     // Required empty constructor for Firebase
     public User() {
     }
 
-    public User(String name, String mobile, String address, String email, String password, String userId) {
+    public User(String name, String mobile, String address, String email, String userId, String authUid) {
         this.name = name;
         this.mobile = mobile;
         this.address = address;
         this.email = email;
-        this.password = password;
         this.userId = userId;
+        this.authUid = authUid;
     }
 
     public String getName() {
@@ -53,19 +53,19 @@ public class User {
         this.email = email;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getUserId() {
         return userId;
     }
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public String getAuthUid() {
+        return authUid;
+    }
+
+    public void setAuthUid(String authUid) {
+        this.authUid = authUid;
     }
 }
