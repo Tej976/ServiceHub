@@ -95,6 +95,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Add Service"
+                    android:backgroundTint="@color/lavender"
                     android:textAllCaps="false" />
             </LinearLayout>
 
@@ -109,11 +110,9 @@
         </LinearLayout>
         <Button
             android:id="@+id/registerButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:text="Register"
-            android:textAllCaps="false" />
+            android:textAllCaps="false"
+            style="@style/ButtonStyle"/>
 
     </LinearLayout>
 </ScrollView>

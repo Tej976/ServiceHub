@@ -13,4 +13,20 @@
     </style>
 
     <style name="Theme.RealtimeDB" parent="Base.Theme.RealtimeDB" />
+
+    <style name="HeadingTextStyle">
+        <item name="android:textColor">@color/lavender</item>
+        <item name="android:textSize">36sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAlignment">center</item>
+    </style>
+
+    <style name="ButtonStyle">
+        <item name="android:backgroundTint">@color/lavender</item>
+        <item name="android:layout_marginTop">30dp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">60dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="cornerRadius">20dp</item>
+    </style>
 </resources>
