@@ -1,21 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:showIn="navigation_view">
-
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_profile"
-            android:icon="@android:drawable/ic_menu_myplaces"
-            android:title="View Profile" />
+            android:icon="@drawable/ic_person"
+            android:title="Profile" />
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_settings"
+            android:title="Session Settings" />
     </group>
 
-    <item android:title="Account">
-        <menu>
-            <item
-                android:id="@+id/nav_logout"
-                android:icon="@android:drawable/ic_lock_power_off"
-                android:title="Logout" />
-        </menu>
-    </item>
+    <group android:id="@+id/group_preferences" android:checkableBehavior="none">
+        <item
+            android:id="@+id/nav_toggle_theme"
+            android:icon="@drawable/ic_theme"
+            android:title="Toggle Dark Theme" />
+    </group>
+
+    <group android:id="@+id/group_account" android:checkableBehavior="none">
+        <item
+            android:id="@+id/nav_logout"
+            android:icon="@drawable/ic_logout"
+            android:title="Logout" />
+    </group>
 </menu>

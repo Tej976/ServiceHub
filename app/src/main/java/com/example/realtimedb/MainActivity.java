@@ -14,7 +14,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -40,10 +42,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Check if this is the first run after installation
-        checkIfFirstRun();
-
         setContentView(R.layout.activity_main);
 
         // Initialize Firebase Auth
@@ -53,11 +51,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
         // Initialize UI elements
-        welcomeTextView = findViewById(R.id.textViewWelcome);
         userTypeTextView = findViewById(R.id.textViewUserType);
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
+
+
+
+
+        // Set up bottom navigation
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+        bottomNav.setOnNavigationItemSelectedListener(navListener);
+
+
+
+
+
 
         // Set up Navigation Drawer
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -81,10 +91,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return;
         }
 
-        // Display user type
+        /* Display user type
         String displayType = userType.equals("customer") ? "Customer" : "Service Provider";
         userTypeTextView.setText("Account Type: " + displayType);
-
+*/
         // Load user data based on user type
         loadUserData();
 
@@ -93,9 +103,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         TextView navUsername = headerView.findViewById(R.id.nav_header_name);
         TextView navUserType = headerView.findViewById(R.id.nav_header_email);
 
-        // We'll update these when we load the user data
-        navUserType.setText(displayType);
+        /* We'll update these when we load the user data
+        navUserType.setText(displayType);*/
     }
+
+    // Bottom navigation listener
+    private BottomNavigationView.OnNavigationItemSelectedListener navListener =
+            new BottomNavigationView.OnNavigationItemSelectedListener() {
+                @Override
+                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                    Fragment selectedFragment = null;
+
+                    int id = item.getItemId();
+                    if (id == R.id.nav_bottom_home) {
+                        return true;
+                    } else if (id == R.id.nav_bottom_add) {
+                        Intent intent = new Intent(MainActivity.this, AddActivity.class);
+                        startActivity(intent);
+                        return true;
+
+                    } else if (id == R.id.nav_bottom_notifications) {
+                        Intent intent = new Intent(MainActivity.this, NotificationsActivity.class);
+                        startActivity(intent);
+                        return true;
+                    }
+                    if (selectedFragment != null) {
+                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                                selectedFragment).commit();
+                    }
+                    return true;
+                }
+            };
+
 
     /**
      * Check if this is the first run after installation
@@ -139,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     String name = dataSnapshot.getValue(String.class);
-                    welcomeTextView.setText("Welcome, " + name + "!");
+        //            welcomeTextView.setText("Welcome, " + name + "!");
 
                     // Also update the name in the navigation header
                     View headerView = navigationView.getHeaderView(0);
