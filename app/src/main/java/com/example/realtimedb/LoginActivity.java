@@ -1,6 +1,7 @@
 package com.example.realtimedb;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -36,6 +37,20 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        // Check if this is a fresh installation (first launch)
+        SharedPreferences preferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+        boolean isFirstRun = preferences.getBoolean("isFirstRun", true);
+
+        if (isFirstRun) {
+            // This is a fresh installation, mark it as no longer first run
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("isFirstRun", false);
+            editor.apply();
+
+            // You might want to clear any existing login credentials
+            // if you're storing them somewhere
+        }
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
