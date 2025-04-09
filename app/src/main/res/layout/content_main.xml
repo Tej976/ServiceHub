@@ -8,28 +8,51 @@
     tools:context=".MainActivity"
     tools:showIn="@layout/app_bar_main">
 
-
     <!-- Main content layout -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-
-        <!-- This is where fragments will be loaded -->
-
-        <!-- Bottom Navigation -->
+        <!-- Main Content -->
         <FrameLayout
             android:id="@+id/fragment_container"
             android:layout_width="match_parent"
             android:layout_height="586dp"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" >
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-            <TextView
-                android:id="@+id/textView2"
-                android:textSize="20dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Home Page" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Services"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp"/>
+
+                <!-- Horizontal scrollable cards -->
+                  <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/services_recycler_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:clipToPadding="false"
+                    android:paddingVertical="4dp" />
+
+                <!-- You can add additional sections below -->
+                <TextView
+                    android:id="@+id/textViewUserType"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Account Type"
+                    android:visibility="gone" />
+
+            </LinearLayout>
         </FrameLayout>
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -41,7 +64,4 @@
             app:menu="@menu/bottom_navigation_menu" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

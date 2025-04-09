@@ -15,6 +15,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -26,14 +28,19 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private String userId;
     private String userType;
-    private TextView welcomeTextView;
     private TextView userTypeTextView;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
+    private RecyclerView servicesRecyclerView;
+    private ServiceAdapter serviceAdapter;
+    private List<ServiceItem> serviceList;
 
     private FirebaseAuth mAuth;
     private static final String PREF_NAME = "AppPrefs";
@@ -51,23 +58,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
         // Initialize UI elements
         userTypeTextView = findViewById(R.id.textViewUserType);
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
 
+        // Initialize services RecyclerView
+        servicesRecyclerView = findViewById(R.id.services_recycler_view);
+        servicesRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
 
+        // Create sample service items
+        createServiceList();
 
+        // Setup adapter
+        serviceAdapter = new ServiceAdapter(this, serviceList);
+        servicesRecyclerView.setAdapter(serviceAdapter);
+
+        // Set click listener for service items
+        serviceAdapter.setOnItemClickListener(position -> {
+            String serviceName = serviceList.get(position).getTitle();
+            Toast.makeText(MainActivity.this, "Selected: " + serviceName, Toast.LENGTH_SHORT).show();
+            // You can add more actions here like navigating to a specific service page
+        });
 
         // Set up bottom navigation
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
         bottomNav.setOnNavigationItemSelectedListener(navListener);
-
-
-
-
-
 
         // Set up Navigation Drawer
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -91,10 +107,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return;
         }
 
-        /* Display user type
-        String displayType = userType.equals("customer") ? "Customer" : "Service Provider";
-        userTypeTextView.setText("Account Type: " + displayType);
-*/
         // Load user data based on user type
         loadUserData();
 
@@ -102,9 +114,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         View headerView = navigationView.getHeaderView(0);
         TextView navUsername = headerView.findViewById(R.id.nav_header_name);
         TextView navUserType = headerView.findViewById(R.id.nav_header_email);
+    }
 
-        /* We'll update these when we load the user data
-        navUserType.setText(displayType);*/
+    // Create list of service items
+    private void createServiceList() {
+        serviceList = new ArrayList<>();
+        serviceList.add(new ServiceItem("Cleaning", R.drawable.i_cleaning));
+        serviceList.add(new ServiceItem("Plumbing", R.drawable.i_plumbing));
+        serviceList.add(new ServiceItem("Electrical", R.drawable.i_electrical));
+        serviceList.add(new ServiceItem("Painting", R.drawable.i_painting));
+        serviceList.add(new ServiceItem("Gardening", R.drawable.i_gardening));
+        serviceList.add(new ServiceItem("Moving", R.drawable.i_security));
+        // Add more services as needed
     }
 
     // Bottom navigation listener
@@ -134,7 +155,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     return true;
                 }
             };
-
 
     /**
      * Check if this is the first run after installation
@@ -178,7 +198,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     String name = dataSnapshot.getValue(String.class);
-        //            welcomeTextView.setText("Welcome, " + name + "!");
 
                     // Also update the name in the navigation header
                     View headerView = navigationView.getHeaderView(0);
