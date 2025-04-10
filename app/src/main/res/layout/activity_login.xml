@@ -66,6 +66,7 @@
                 android:layout_height="wrap_content"
                 android:clickable="true"
                 android:focusable="true"
+                android:layout_gravity="center_horizontal"
                 android:text="New user? Register here"
                 android:textColor="@color/lavender" />
 
