@@ -128,6 +128,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Add more services as needed
     }
 
+
+
     // Bottom navigation listener
     private BottomNavigationView.OnNavigationItemSelectedListener navListener =
             new BottomNavigationView.OnNavigationItemSelectedListener() {
