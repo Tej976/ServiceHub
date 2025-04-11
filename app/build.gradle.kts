@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.realtimedb"
+    namespace = "com.example.servicehub"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.realtimedb"
+        applicationId = "com.example.servicehub"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -46,4 +46,8 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+
+    implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
+    implementation("com.google.firebase:firebase-analytics")
 }

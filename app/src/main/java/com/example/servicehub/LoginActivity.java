@@ -1,4 +1,4 @@
-package com.example.realtimedb;
+package com.example.servicehub;
 
 import android.content.Intent;
 import android.content.SharedPreferences;

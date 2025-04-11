@@ -1,4 +1,4 @@
-package com.example.realtimedb;
+package com.example.servicehub;
 
 import android.os.Bundle;
 import android.widget.Button;
@@ -6,7 +6,6 @@ import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager2.widget.ViewPager2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,18 +32,23 @@ public class AddActivity extends AppCompatActivity {
 
         // Find the button that adds new cards
         Button addCardButton = findViewById(R.id.addCardButton);
+
         // Set an OnClickListener on the button to add a new card when clicked
         addCardButton.setOnClickListener(v -> addNewCard());
     }
 
     // Method to add a new card to the list
     private void addNewCard() {
+
         // Determine the action type based on the current card count (cycling through 1, 2, 3)
         int actionType = cardCount % 3 + 1; // This will give values 1, 2, or 3
+
         // Create a new CardItem with a title and action type, and add it to the list
         cardList.add(new CardItem("Card " + cardCount, actionType));
+
         // Notify the adapter that a new item has been inserted at the end of the list
         adapter.notifyItemInserted(cardList.size() - 1);
+
         // Increment the card count for the next card
         cardCount++;
     }

@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "RealtimeDB"
+rootProject.name = "ServiceHub"
 include(":app")

@@ -1,30 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:background="#E4D9F6"
+    android:gravity="center"
+    tools:context=".AddActivity">
 
-
-    <TextView
-        android:layout_width="match_parent"
+    <androidx.cardview.widget.CardView
+        android:layout_width="270dp"
         android:layout_height="wrap_content"
-        android:text="Service Details"
-        android:textSize="20dp"
-        android:textStyle="bold"
-        android:layout_marginBottom="10dp">
-    </TextView>
+        android:elevation="8dp"
+        android:layout_margin="30dp"
+        app:cardCornerRadius="30dp"
+        app:cardElevation="20dp">
 
-    <Button
-        android:id="@+id/addCardButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Add Service" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"/>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:padding="20dp"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Service Details"
+                android:textSize="20dp"
+                android:textStyle="bold"
+                android:layout_marginBottom="10dp">
+            </TextView>
+
+            <!-- Title -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add New Service"
+                android:textSize="24sp"
+                android:layout_marginBottom="16dp"
+                android:layout_gravity="center_horizontal"
+                android:paddingBottom="16dp" />
+
+            <!-- Section: Service Details -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Service Details"
+                android:textSize="18sp"
+                android:layout_marginBottom="10dp"
+                android:paddingBottom="8dp" />
+
+            <!-- Service Name Input -->
+            <EditText
+                android:id="@+id/serviceNameInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Service Name"
+                android:padding="12dp"
+                android:layout_marginBottom="24dp"/>
+
+            <EditText
+                android:id="@+id/serviceNameDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Service Description"
+                android:padding="12dp"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- Add Service Button -->
+            <Button
+                android:id="@+id/addCardButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Add Service"
+                style="@style/ButtonStyle"
+                android:padding="12dp"/>
+
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"/>
+
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
 </LinearLayout>
+
