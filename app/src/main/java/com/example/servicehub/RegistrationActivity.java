@@ -221,51 +221,80 @@ public class RegistrationActivity extends AppCompatActivity {
         userMap.put("authUid", authUid);  // Store Firebase Auth UID to link accounts
         userMap.put("userType", userType);
 
-        // Add services list for service providers
-        if (userType.equals("service_provider")) {
-            userMap.put("services", selectedServices);
-        }
-
-        // Get Firebase reference based on user type
+        // Get Firebase reference
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference usersRef;
 
         if (userType.equals("customer")) {
-            usersRef = database.getReference("customers");
-        } else {
-            usersRef = database.getReference("service_providers");
-        }
+            // For customers, store data in the customers node
+            DatabaseReference usersRef = database.getReference("customers");
 
-        // Generate unique database ID
-        String userId = usersRef.push().getKey();
-        userMap.put("userId", userId);
+            // Generate unique database ID
+            String userId = usersRef.push().getKey();
+            userMap.put("userId", userId);
 
-        // Save user to database
-        usersRef.child(userId).setValue(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    Toast.makeText(RegistrationActivity.this, "Registration successful!", Toast.LENGTH_SHORT).show();
-
-                    // Clear fields
-                    nameEditText.getText().clear();
-                    mobileEditText.getText().clear();
-                    addressEditText.getText().clear();
-                    emailEditText.getText().clear();
-                    passwordEditText.getText().clear();
-                    selectedServices.clear();
-                    updateSelectedServicesText();
-
-                    // Start MainActivity with userId and userType
-                    Intent intent = new Intent(RegistrationActivity.this, MainActivity.class);
-                    intent.putExtra("userId", userId);
-                    intent.putExtra("userType", userType);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    Toast.makeText(RegistrationActivity.this, "Database registration failed. Please try again.", Toast.LENGTH_SHORT).show();
+            // Save user to database
+            usersRef.child(userId).setValue(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    handleRegistrationComplete(task, userId);
                 }
-            }
-        });
+            });
+        } else {
+            // For service providers, store in service-specific nodes
+            // Generate unique service provider ID
+            DatabaseReference serviceProvidersRef = database.getReference("service_providers");
+            String userId = serviceProvidersRef.push().getKey();
+            userMap.put("userId", userId);
+
+            // Add service provider to main service_providers node
+            serviceProvidersRef.child(userId).setValue(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        // Add the service provider to each selected service category node
+                        for (String service : selectedServices) {
+                            // Create reference to service-specific node
+                            DatabaseReference serviceRef = database.getReference("service_categories")
+                                    .child(service.toLowerCase());
+
+                            // Add this service provider to the service category
+                            serviceRef.child(userId).setValue(userMap);
+                        }
+                        handleRegistrationComplete(task, userId);
+                    } else {
+                        Toast.makeText(RegistrationActivity.this,
+                                "Database registration failed. Please try again.",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+    }
+
+    // Helper method to handle common registration completion tasks
+    private void handleRegistrationComplete(Task<Void> task, String userId) {
+        if (task.isSuccessful()) {
+            Toast.makeText(RegistrationActivity.this, "Registration successful!", Toast.LENGTH_SHORT).show();
+
+            // Clear fields
+            nameEditText.getText().clear();
+            mobileEditText.getText().clear();
+            addressEditText.getText().clear();
+            emailEditText.getText().clear();
+            passwordEditText.getText().clear();
+            selectedServices.clear();
+            updateSelectedServicesText();
+
+            // Start MainActivity with userId and userType
+            Intent intent = new Intent(RegistrationActivity.this, MainActivity.class);
+            intent.putExtra("userId", userId);
+            intent.putExtra("userType", userType);
+            startActivity(intent);
+            finish();
+        } else {
+            Toast.makeText(RegistrationActivity.this,
+                    "Database registration failed. Please try again.",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 }

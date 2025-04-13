@@ -25,15 +25,6 @@
             android:padding="20dp"
             android:layout_height="wrap_content">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Service Details"
-                android:textSize="20dp"
-                android:textStyle="bold"
-                android:layout_marginBottom="10dp">
-            </TextView>
-
             <!-- Title -->
             <TextView
                 android:layout_width="wrap_content"
@@ -63,7 +54,7 @@
                 android:layout_marginBottom="24dp"/>
 
             <EditText
-                android:id="@+id/serviceNameDescription"
+                android:id="@+id/serviceDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Service Description"
@@ -75,17 +66,17 @@
                 android:id="@+id/addCardButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Add Service"
+                android:text="Sent Request To Add New Service"
                 style="@style/ButtonStyle"
                 android:padding="12dp"/>
 
-
+<!--
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"/>
-
+-->
 
         </LinearLayout>
 
