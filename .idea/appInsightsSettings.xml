@@ -8,8 +8,8 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.example.servicehub" />
-                  <option name="mobileSdkAppId" value="1:9024033060:android:c76dff5918d668c71ce3b1" />
+                  <option name="appId" value="com.example.realtimedb" />
+                  <option name="mobileSdkAppId" value="1:9024033060:android:b5d169cafcdbbd221ce3b1" />
                   <option name="projectId" value="realtimedatabase-660d8" />
                   <option name="projectNumber" value="9024033060" />
                 </ConnectionSetting>

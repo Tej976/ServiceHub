@@ -14,9 +14,6 @@
         android:theme="@style/Theme.RealtimeDB"
         tools:targetApi="31">
         <activity
-            android:name=".Display_Providers_Activity"
-            android:exported="false" />
-        <activity
             android:name=".NotificationsActivity"
             android:exported="false" />
         <activity
