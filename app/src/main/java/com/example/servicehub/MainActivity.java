@@ -77,8 +77,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Set click listener for service items
         serviceAdapter.setOnItemClickListener(position -> {
             String serviceName = serviceList.get(position).getTitle();
-            Toast.makeText(MainActivity.this, "Selected: " + serviceName, Toast.LENGTH_SHORT).show();
-            // You can add more actions here like navigating to a specific service page
+
+            Intent intent = new Intent(MainActivity.this, ServiceProvidersActivity.class);
+            intent.putExtra("serviceName", serviceName);
+            startActivity(intent);
         });
 
         // Set up bottom navigation

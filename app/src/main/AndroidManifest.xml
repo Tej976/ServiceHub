@@ -14,6 +14,27 @@
         android:theme="@style/Theme.RealtimeDB"
         tools:targetApi="31">
         <activity
+            android:name=".ServiceProvidersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activity_Moving"
+            android:exported="false" />
+        <activity
+            android:name=".Activity_Gardening"
+            android:exported="false" />
+        <activity
+            android:name=".Activity_Painting"
+            android:exported="false" />
+        <activity
+            android:name=".Activity_Electrical"
+            android:exported="false" />
+        <activity
+            android:name=".Activity_Plumbing"
+            android:exported="false" />
+        <activity
+            android:name=".Activity_cleaning"
+            android:exported="false" />
+        <activity
             android:name=".NotificationsActivity"
             android:exported="false" />
         <activity
