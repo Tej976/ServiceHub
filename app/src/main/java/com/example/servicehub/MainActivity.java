@@ -88,8 +88,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         bottomNav.setOnNavigationItemSelectedListener(navListener);
 
         // Set up Navigation Drawer
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
@@ -115,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Update the header view in navigation drawer
         View headerView = navigationView.getHeaderView(0);
         TextView navUsername = headerView.findViewById(R.id.nav_header_name);
-        TextView navUserType = headerView.findViewById(R.id.nav_header_email);
+        TextView navUserType = headerView.findViewById(R.id.nav_header_userType);
     }
 
     // Create list of service items
@@ -207,6 +206,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     View headerView = navigationView.getHeaderView(0);
                     TextView navUsername = headerView.findViewById(R.id.nav_header_name);
                     navUsername.setText(name);
+
+                    // set the userType in the navigation header
+                    TextView navUserType = headerView.findViewById(R.id.nav_header_userType);
+                    //format the userType i.e. capitalize the first letter
+                    String formattedUsertype = userType.substring(0,1).toUpperCase()+ userType.substring(1);
+                    navUserType.setText(formattedUsertype);
                 }
             }
 

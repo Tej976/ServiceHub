@@ -3,6 +3,10 @@ package com.example.servicehub;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -19,11 +23,25 @@ import com.google.firebase.database.ValueEventListener;
 public class SplashActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
+    private ImageView splashLogo;
+    private TextView splashText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+
+        // Initialize views
+        splashLogo = findViewById(R.id.splashLogo);
+        splashText = findViewById(R.id.splashText);
+
+        // Load animations
+        Animation logoAnimation = AnimationUtils.loadAnimation(this, R.anim.top_bounce);
+        Animation textAnimation = AnimationUtils.loadAnimation(this, R.anim.bottom_bounce);
+
+        // Start animations
+        splashLogo.startAnimation(logoAnimation);
+        splashText.startAnimation(textAnimation);
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
@@ -36,14 +54,14 @@ public class SplashActivity extends AppCompatActivity {
             checkUserTypeAndRedirect(currentUser.getUid());
         } else {
             // No user is logged in, go to login screen
-            // Add a small delay so users can see the splash screen
+            // Add a delay so users can see the splash screen animations
             new android.os.Handler().postDelayed(
                     new Runnable() {
                         @Override
                         public void run() {
                             goToLoginActivity();
                         }
-                    }, 1500); // 1.5 seconds delay
+                    }, 3500); // 3.5 seconds delay to allow slower animations to complete
         }
     }
 
@@ -104,7 +122,7 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void redirectToMainActivity(String userId, String userType) {
-        // Add a small delay so users can see the splash screen
+        // Add a delay so users can see the splash screen and animations
         new android.os.Handler().postDelayed(
                 new Runnable() {
                     @Override
@@ -116,7 +134,7 @@ public class SplashActivity extends AppCompatActivity {
                         startActivity(intent);
                         finish();
                     }
-                }, 1500); // 1.5 seconds delay
+                }, 3500); // 3.5 seconds delay
     }
 
     private void goToLoginActivity() {
