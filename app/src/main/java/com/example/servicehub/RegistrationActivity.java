@@ -187,28 +187,26 @@ public class RegistrationActivity extends AppCompatActivity {
         }
     }
 
-    private void createUserWithFirebaseAuth(final String name, final String mobile,
-                                            final String address, final String email, final String password) {
+    private void createUserWithFirebaseAuth(final String name, final String mobile, final String address, final String email, final String password) {
         // Create user in Firebase Authentication
-        mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, get the newly created user
-                            FirebaseUser firebaseUser = mAuth.getCurrentUser();
+        mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    // Sign in success, get the newly created user
+                    FirebaseUser firebaseUser = mAuth.getCurrentUser();
 
-                            if (firebaseUser != null) {
-                                // Now save additional user info to Realtime Database based on user type
-                                saveUserToDatabase(firebaseUser.getUid(), name, mobile, address, email);
-                            }
-                        } else {
-                            // If sign in fails, display a message to the user
-                            Toast.makeText(RegistrationActivity.this, "Authentication failed: "
-                                    + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                        }
+                    if (firebaseUser != null) {
+                        // Now save additional user info to Realtime Database based on user type
+                        saveUserToDatabase(firebaseUser.getUid(), name, mobile, address, email);
                     }
-                });
+                }
+                else {
+                    // If sign in fails, display a message to the user
+                    Toast.makeText(RegistrationActivity.this, "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void saveUserToDatabase(String authUid, String name, String mobile, String address, String email) {
@@ -254,17 +252,15 @@ public class RegistrationActivity extends AppCompatActivity {
                         // Add the service provider to each selected service category node
                         for (String service : selectedServices) {
                             // Create reference to service-specific node
-                            DatabaseReference serviceRef = database.getReference("service_categories")
-                                    .child(service.toLowerCase());
+                            DatabaseReference serviceRef = database.getReference("service_categories").child(service.toLowerCase());
 
                             // Add this service provider to the service category
                             serviceRef.child(userId).setValue(userMap);
                         }
                         handleRegistrationComplete(task, userId);
-                    } else {
-                        Toast.makeText(RegistrationActivity.this,
-                                "Database registration failed. Please try again.",
-                                Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        Toast.makeText(RegistrationActivity.this, "Database registration failed. Please try again.", Toast.LENGTH_SHORT).show();
                     }
                 }
             });

@@ -120,12 +120,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     // Create list of service items
     private void createServiceList() {
         serviceList = new ArrayList<>();
-        serviceList.add(new ServiceItem("Cleaning", R.drawable.i_cleaning));
+        serviceList.add(new ServiceItem("Room Cleaning", R.drawable.i_roomcleaning));
+        serviceList.add(new ServiceItem("Fridge Repairs", R.drawable.i_fridgerepairs));
+        serviceList.add(new ServiceItem("Chef", R.drawable.i_chef));
+        serviceList.add(new ServiceItem("Pest Control", R.drawable.i_pest_control));
         serviceList.add(new ServiceItem("Plumbing", R.drawable.i_plumbing));
         serviceList.add(new ServiceItem("Electrical", R.drawable.i_electrical));
+        serviceList.add(new ServiceItem("Window Cleaning", R.drawable.i_windowcleaning));
         serviceList.add(new ServiceItem("Painting", R.drawable.i_painting));
         serviceList.add(new ServiceItem("Gardening", R.drawable.i_gardening));
         serviceList.add(new ServiceItem("Moving", R.drawable.i_security));
+        serviceList.add(new ServiceItem("AC Repair", R.drawable.i_acrepairs));
+        serviceList.add(new ServiceItem("Security", R.drawable.i_security));
+
         // Add more services as needed
     }
 

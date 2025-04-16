@@ -44,7 +44,6 @@ public class ServiceProvidersActivity extends AppCompatActivity {
 
         // Initialize UI components
         serviceProviderListView = findViewById(R.id.listViewServiceProviders);
-        titleTextView = findViewById(R.id.textViewTitle);
 
         // Set up toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
