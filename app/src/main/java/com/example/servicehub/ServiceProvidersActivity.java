@@ -53,9 +53,6 @@ public class ServiceProvidersActivity extends AppCompatActivity {
             getSupportActionBar().setTitle(serviceName + " Services");
         }
 
-        // Set activity title
-        titleTextView.setText(serviceName + " Service Providers");
-
         // Initialize the providers list and adapter
         providersList = new ArrayList<>();
         adapter = new SimpleAdapter(
