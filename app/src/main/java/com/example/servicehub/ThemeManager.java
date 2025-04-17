@@ -2,72 +2,59 @@ package com.example.servicehub;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
 public class ThemeManager {
-    // Constants
-    private static final String THEME_PREFS = "ThemePreferences";
-    private static final String KEY_THEME_MODE = "ThemeMode";
+    private static final String THEME_PREFS = "ThemePrefs";
+    private static final String DARK_MODE_KEY = "isDarkMode";
 
-    // Singleton instance
-    private static ThemeManager instance;
+    private Context context;
+    private boolean isDarkMode;
 
-    // Theme modes
-    public static final int MODE_LIGHT = AppCompatDelegate.MODE_NIGHT_NO;
-    public static final int MODE_DARK = AppCompatDelegate.MODE_NIGHT_YES;
-    public static final int MODE_SYSTEM = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
+    public ThemeManager(Context context) {
+        this.context = context;
 
-    // Member variables
-    private final SharedPreferences preferences;
-
-    // Private constructor for singleton pattern
-    private ThemeManager(Context context) {
-        preferences = context.getSharedPreferences(THEME_PREFS, Context.MODE_PRIVATE);
+        // Load saved theme preference
+        SharedPreferences sharedPreferences = context.getSharedPreferences(THEME_PREFS, Context.MODE_PRIVATE);
+        isDarkMode = sharedPreferences.getBoolean(DARK_MODE_KEY, false);
     }
 
-    // Get singleton instance
-    public static synchronized ThemeManager getInstance(Context context) {
-        if (instance == null) {
-            instance = new ThemeManager(context.getApplicationContext());
-        }
-        return instance;
+    public void init() {
+        applyTheme();
     }
 
-    // Apply saved theme mode or default to system
-    public void applyTheme() {
-        int themeMode = getThemeMode();
-        AppCompatDelegate.setDefaultNightMode(themeMode);
+    public boolean isDarkMode() {
+        return isDarkMode;
     }
 
-    // Get current theme mode
-    public int getThemeMode() {
-        // Default to system theme for API 29+ (Android 10+)
-        int defaultMode = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ?
-                MODE_SYSTEM : MODE_LIGHT;
-        return preferences.getInt(KEY_THEME_MODE, defaultMode);
-    }
+    public void toggleTheme(AppCompatActivity activity) {
+        // Toggle the theme state
+        isDarkMode = !isDarkMode;
 
-    // Save and apply theme mode
-    public void setThemeMode(int themeMode) {
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putInt(KEY_THEME_MODE, themeMode);
+        // Save the theme preference
+        SharedPreferences sharedPreferences = context.getSharedPreferences(THEME_PREFS, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(DARK_MODE_KEY, isDarkMode);
         editor.apply();
 
-        // Apply the theme mode
-        AppCompatDelegate.setDefaultNightMode(themeMode);
+        // Apply the theme
+        applyTheme();
+
+        // Recreate the activity to apply changes
+        if (activity != null) {
+            activity.recreate();
+        }
     }
 
-    // Toggle between light and dark theme
-    public void toggleTheme() {
-        int currentTheme = getThemeMode();
-        int newTheme = (currentTheme == MODE_DARK) ? MODE_LIGHT : MODE_DARK;
-        setThemeMode(newTheme);
-    }
-
-    // Check if dark theme is active
-    public boolean isDarkTheme() {
-        return getThemeMode() == MODE_DARK;
+    public void applyTheme() {
+        if (isDarkMode) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            context.setTheme(R.style.AppTheme);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            context.setTheme(R.style.AppTheme);
+        }
     }
 }

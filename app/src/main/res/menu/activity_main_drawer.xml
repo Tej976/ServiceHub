@@ -11,12 +11,11 @@
             android:title="Session Settings" />
     </group>
 
-    <group android:id="@+id/group_preferences" android:checkableBehavior="none">
-        <item
-            android:id="@+id/nav_toggle_theme"
-            android:icon="@drawable/ic_theme"
-            android:title="Toggle Dark Theme" />
-    </group>
+
+    <item
+        android:id="@+id/nav_toggle_theme"
+        android:icon="@drawable/ic_theme"
+        android:title="Toggle Theme" />
 
     <group android:id="@+id/group_account" android:checkableBehavior="none">
         <item

@@ -33,9 +33,10 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
+    private ThemeManager themeManager;
+
     private String userId;
     private String userType;
-    private TextView userTypeTextView;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private RecyclerView servicesRecyclerView;
@@ -48,6 +49,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        themeManager = new ThemeManager(this);
+        themeManager.init();
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -59,7 +64,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setSupportActionBar(toolbar);
 
         // Initialize UI elements
-        userTypeTextView = findViewById(R.id.textViewUserType);
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
 
@@ -115,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         View headerView = navigationView.getHeaderView(0);
         TextView navUsername = headerView.findViewById(R.id.nav_header_name);
         TextView navUserType = headerView.findViewById(R.id.nav_header_userType);
+
     }
 
     // Create list of service items
@@ -247,6 +252,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here
@@ -258,7 +264,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             intent.putExtra("userId", userId);
             intent.putExtra("userType", userType);
             startActivity(intent);
-        } else if (id == R.id.nav_logout) {
+        }
+        else if (id == R.id.nav_toggle_theme) {
+            // Toggle the theme when user clicks this menu item
+            themeManager.toggleTheme(this);
+            // Update the menu item text based on current theme
+            item.setTitle(themeManager.isDarkMode() ? "Switch to Light Theme" : "Switch to Dark Theme");
+        }
+        else if (id == R.id.nav_logout) {
             // Handle the logout action
             mAuth.signOut();
 
