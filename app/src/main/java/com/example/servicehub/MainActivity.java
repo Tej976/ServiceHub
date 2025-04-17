@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Intent intent = new Intent(MainActivity.this, ServiceProvidersActivity.class);
             intent.putExtra("serviceName", serviceName);
             startActivity(intent);
+
         });
 
         // Set up bottom navigation
@@ -171,10 +172,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             };
 
-    /**
-     * Check if this is the first run after installation
-     * If it is, clear any system-stored back stack information
-     */
+
+    /* Check if this is the first run after installation. If it is, clear any system-stored back stack information       */
+
     private void checkIfFirstRun() {
         SharedPreferences preferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
         boolean isFirstRun = preferences.getBoolean(FIRST_RUN_KEY, true);

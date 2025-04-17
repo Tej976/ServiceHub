@@ -43,7 +43,7 @@ public class RegistrationActivity extends AppCompatActivity {
     private TextView selectedServicesTextView;
 
     // Service options
-    private String[] serviceOptions = {"Select Service", "Cleaning", "Plumbing", "Electrical", "Carpentry", "Gardening", "Painting"};
+    private String[] serviceOptions = {"Select Service", "Room Cleaning", "Fridge Repairs", "Chef", "Pest Control", "Plumbing", "Electrical", "Window Cleaning", "Painting", "Gardening", "Moving", "AC Repairs", "Security"};
     private List<String> selectedServices = new ArrayList<>();
 
     private FirebaseAuth mAuth;
