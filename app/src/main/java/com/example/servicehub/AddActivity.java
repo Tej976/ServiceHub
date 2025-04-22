@@ -25,9 +25,9 @@ import java.util.List;
 
 public class AddActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
-    private CardAdapter adapter;
-    private List<CardItem> cardList = new ArrayList<>();                       // List to hold CardItem objects
-    private int cardCount = 1;                                                 // Counter to keep track of the number of cards added
+   // private CardAdapter adapter;
+  //  private List<CardItem> cardList = new ArrayList<>();                       // List to hold CardItem objects
+  //  private int cardCount = 1;                                                 // Counter to keep track of the number of cards added
     private final String DEFAULT_EMAIL_ADDRESS = "tejaswininikam642004@gmail.com";     // Default email address
     private EditText serviceNameInput;
     private EditText serviceDescription;
