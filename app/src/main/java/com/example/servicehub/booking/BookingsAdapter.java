@@ -1,4 +1,4 @@
-package com.example.servicehub;
+package com.example.servicehub.booking;
 
 import android.content.Context;
 import android.view.View;
@@ -7,6 +7,8 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
+
+import com.example.servicehub.R;
 
 import java.util.List;
 import java.util.Map;
