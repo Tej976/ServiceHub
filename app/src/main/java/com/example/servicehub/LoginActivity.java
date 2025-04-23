@@ -47,9 +47,6 @@ public class LoginActivity extends AppCompatActivity {
             SharedPreferences.Editor editor = preferences.edit();
             editor.putBoolean("isFirstRun", false);
             editor.apply();
-
-            // You might want to clear any existing login credentials
-            // if you're storing them somewhere
         }
 
         // Initialize Firebase Auth

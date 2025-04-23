@@ -6,6 +6,10 @@
             android:icon="@drawable/ic_person"
             android:title="Profile" />
         <item
+            android:id="@+id/nav_my_bookings"
+            android:icon="@drawable/ic_booking"
+            android:title="My Bookings"/>
+        <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/ic_settings"
             android:title="Session Settings" />

@@ -1,6 +1,9 @@
 package com.example.servicehub;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -25,8 +28,7 @@ public class ServiceProvidersActivity extends AppCompatActivity {
 
     private ListView serviceProviderListView;
     private List<Map<String, String>> providersList;
-    private SimpleAdapter adapter;
-    private TextView titleTextView;
+    private CustomServiceProviderAdapter adapter;
     private String serviceName;
 
     @Override
@@ -53,9 +55,11 @@ public class ServiceProvidersActivity extends AppCompatActivity {
             getSupportActionBar().setTitle(serviceName + " Services");
         }
 
-        // Initialize the providers list and adapter
+        // Initialize the providers list
         providersList = new ArrayList<>();
-        adapter = new SimpleAdapter(
+
+        // Use custom adapter instead of SimpleAdapter to handle button clicks
+        adapter = new CustomServiceProviderAdapter(
                 this,
                 providersList,
                 R.layout.service_provider_item,
@@ -89,6 +93,7 @@ public class ServiceProvidersActivity extends AppCompatActivity {
                     String name = providerSnapshot.child("name").getValue(String.class);
                     String mobile = providerSnapshot.child("mobile").getValue(String.class);
                     String address = providerSnapshot.child("address").getValue(String.class);
+                    String providerId = providerSnapshot.getKey(); // Get the provider ID
 
                     if (name != null && mobile != null && address != null) {
                         // Create a map for this provider
@@ -96,6 +101,7 @@ public class ServiceProvidersActivity extends AppCompatActivity {
                         providerMap.put("name", name);
                         providerMap.put("mobile", mobile);
                         providerMap.put("address", address);
+                        providerMap.put("id", providerId);
 
                         // Add to the list
                         providersList.add(providerMap);

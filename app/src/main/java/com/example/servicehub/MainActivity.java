@@ -173,6 +173,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             };
 
 
+
+
+
     /* Check if this is the first run after installation. If it is, clear any system-stored back stack information       */
 
     private void checkIfFirstRun() {
@@ -261,6 +264,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (id == R.id.nav_profile) {
             // Handle the view profile action
             Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+            intent.putExtra("userId", userId);
+            intent.putExtra("userType", userType);
+            startActivity(intent);
+        }
+        else if (id == R.id.nav_my_bookings) {
+            Intent intent = new Intent(MainActivity.this, MyBookingsActivity.class);
             intent.putExtra("userId", userId);
             intent.putExtra("userType", userType);
             startActivity(intent);

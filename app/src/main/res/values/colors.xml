@@ -16,6 +16,10 @@
     <color name="backgroundLight">#FFFFFF</color>
     <color name="backgroundDark">#121212</color>
 
+    <color name="pending_color">#FF9800</color>
+    <color name="confirmed_color">#4CAF50</color>
+    <color name="completed_color">#2196F3</color>
+    <color name="cancelled_color">#F44336</color>
 
 
 </resources>
