@@ -2,6 +2,7 @@ package com.example.servicehub.booking;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -14,6 +15,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.example.servicehub.MainActivity;
 import com.example.servicehub.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
@@ -29,7 +31,7 @@ import java.util.UUID;
 public class BookingActivity extends AppCompatActivity {
 
     private TextView tvProviderName, tvProviderMobile, tvProviderAddress, tvServiceType;
-    private EditText etName, etMobile, etRequirements;
+    private EditText etRequirements;
     private Button btnSelectDate, btnSelectTime, btnConfirmBooking;
     private String selectedDate = "";
     private String selectedTime = "";
@@ -55,8 +57,6 @@ public class BookingActivity extends AppCompatActivity {
         tvProviderMobile = findViewById(R.id.tvProviderMobile);
         tvProviderAddress = findViewById(R.id.tvProviderAddress);
         tvServiceType = findViewById(R.id.tvServiceType);
-        etName = findViewById(R.id.etName);
-        etMobile = findViewById(R.id.etMobile);
         etRequirements = findViewById(R.id.etRequirements);
         btnSelectDate = findViewById(R.id.btnSelectDate);
         btnSelectTime = findViewById(R.id.btnSelectTime);
@@ -142,21 +142,9 @@ public class BookingActivity extends AppCompatActivity {
     }
 
     private void confirmBooking() {
-        String customerName = etName.getText().toString().trim();
-        String customerMobile = etMobile.getText().toString().trim();
-        String requirements = etRequirements.getText().toString().trim();
+       String requirements = etRequirements.getText().toString().trim();
 
         // Validate inputs
-        if (customerName.isEmpty()) {
-            etName.setError("Name is required");
-            return;
-        }
-
-        if (customerMobile.isEmpty()) {
-            etMobile.setError("Mobile number is required");
-            return;
-        }
-
         if (selectedDate.isEmpty()) {
             Toast.makeText(this, "Please select a date", Toast.LENGTH_SHORT).show();
             return;
@@ -176,8 +164,6 @@ public class BookingActivity extends AppCompatActivity {
         // Create booking object
         Map<String, Object> booking = new HashMap<>();
         booking.put("customerId", userId);
-        booking.put("customerName", customerName);
-        booking.put("customerMobile", customerMobile);
         booking.put("requirements", requirements);
         booking.put("providerId", providerId);
         booking.put("providerName", tvProviderName.getText().toString());
@@ -195,10 +181,22 @@ public class BookingActivity extends AppCompatActivity {
 
         bookingsRef.child(bookingId).setValue(booking).addOnSuccessListener(aVoid -> {
             Toast.makeText(BookingActivity.this, "Booking confirmed successfully!", Toast.LENGTH_LONG).show();
+
+            // Navigate to MainActivity
+            Intent intent = new Intent(BookingActivity.this, MainActivity.class);
+            // Add these lines to pass the necessary user information
+            String Id = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            intent.putExtra("userId", Id);
+            // You'll need to determine the userType - this could be stored in SharedPreferences
+            // or retrieved from Firebase. For now, I'm assuming "customer" since they're booking
+            intent.putExtra("userType", "customer");
+            startActivity(intent);
             finish();
+
         }).addOnFailureListener(e -> {
             Toast.makeText(BookingActivity.this, "Failed to book: " + e.getMessage(), Toast.LENGTH_LONG).show();
         });
+
     }
 
     @Override

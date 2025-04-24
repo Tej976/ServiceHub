@@ -22,7 +22,7 @@
                 android:value=".MainActivity"/>
         </activity>
         <activity
-            android:name=".BookingActivity"
+            android:name=".booking.BookingActivity"
             android:exported="false"
             android:parentActivityName=".ServiceProvidersActivity">
             <meta-data
@@ -30,10 +30,7 @@
                 android:value=".ServiceProvidersActivity" />
         </activity>
 
-        <activity
-            android:name=".Book.BookingActivity"
-            android:exported="false" />
-        <activity
+       <activity
             android:name=".SplashActivity"
             android:exported="true">
             <intent-filter>

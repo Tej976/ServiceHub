@@ -81,43 +81,6 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Booking Form -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Your Information"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp"/>
-
-            <!-- Regular EditText instead of TextInputLayout -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Your Name"
-                android:textSize="14sp" />
-
-            <EditText
-                android:id="@+id/etName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter your name"
-                android:inputType="textPersonName"
-                android:layout_marginBottom="16dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Phone Number"
-                android:textSize="14sp" />
-
-            <EditText
-                android:id="@+id/etMobile"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter your phone number"
-                android:inputType="phone"
-                android:layout_marginBottom="16dp"/>
 
             <TextView
                 android:layout_width="match_parent"

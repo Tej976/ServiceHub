@@ -176,9 +176,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             };
 
 
-
-
-
     /* Check if this is the first run after installation. If it is, clear any system-stored back stack information       */
 
     private void checkIfFirstRun() {
