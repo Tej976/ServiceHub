@@ -157,12 +157,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     int id = item.getItemId();
                     if (id == R.id.nav_bottom_home) {
                         return true;
-                    } else if (id == R.id.nav_bottom_add) {
+                    }
+                    else if (id == R.id.nav_bottom_add) {
                         Intent intent = new Intent(MainActivity.this, AddActivity.class);
                         startActivity(intent);
                         return true;
 
-                    } else if (id == R.id.nav_bottom_notifications) {
+                    }
+
+                    else if (id == R.id.nav_bottom_notifications) {
+                        Intent intent = new Intent(MainActivity.this, MyBookingsActivity.class);
+                        intent.putExtra("userId", userId);
+                        intent.putExtra("userType", userType);
+                        startActivity(intent);
+                    }
+                    else if (id == R.id.nav_bottom_notifications) {
                         Intent intent = new Intent(MainActivity.this, NotificationsActivity.class);
                         startActivity(intent);
                         return true;
@@ -264,12 +273,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (id == R.id.nav_profile) {
             // Handle the view profile action
             Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-            intent.putExtra("userId", userId);
-            intent.putExtra("userType", userType);
-            startActivity(intent);
-        }
-        else if (id == R.id.nav_my_bookings) {
-            Intent intent = new Intent(MainActivity.this, MyBookingsActivity.class);
             intent.putExtra("userId", userId);
             intent.putExtra("userType", userType);
             startActivity(intent);
