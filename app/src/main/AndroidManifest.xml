@@ -14,12 +14,18 @@
         android:theme="@style/AppTheme"
         tools:targetApi="31">
         <activity
+            android:name=".booking.CustomerBookingDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".booking.BookingDetailsActivity"
+            android:exported="false" />
+        <activity
             android:name=".booking.MyBookingsActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity"/>
+                android:value=".MainActivity" />
         </activity>
         <activity
             android:name=".booking.BookingActivity"
@@ -29,8 +35,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ServiceProvidersActivity" />
         </activity>
-
-       <activity
+        <activity
             android:name=".SplashActivity"
             android:exported="true">
             <intent-filter>

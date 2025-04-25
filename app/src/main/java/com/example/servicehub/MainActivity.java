@@ -87,6 +87,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             Intent intent = new Intent(MainActivity.this, ServiceProvidersActivity.class);
             intent.putExtra("serviceName", serviceName);
+            intent.putExtra("userId",userId);
+            intent.putExtra("userType",userType);
             startActivity(intent);
 
         });
@@ -147,7 +149,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
 
-    // Bottom navigation listener
+    // Update the bottom navigation listener in MainActivity.java
+
     private BottomNavigationView.OnNavigationItemSelectedListener navListener =
             new BottomNavigationView.OnNavigationItemSelectedListener() {
                 @Override
@@ -162,20 +165,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         Intent intent = new Intent(MainActivity.this, AddActivity.class);
                         startActivity(intent);
                         return true;
-
                     }
-
-                    else if (id == R.id.nav_bottom_notifications) {
+                    else if (id == R.id.nav_bottom_bookings) {
                         Intent intent = new Intent(MainActivity.this, MyBookingsActivity.class);
                         intent.putExtra("userId", userId);
                         intent.putExtra("userType", userType);
                         startActivity(intent);
+                        return true;
                     }
                     else if (id == R.id.nav_bottom_notifications) {
                         Intent intent = new Intent(MainActivity.this, NotificationsActivity.class);
+                        intent.putExtra("userId", userId);
+                        intent.putExtra("userType", userType);
                         startActivity(intent);
                         return true;
                     }
+
                     if (selectedFragment != null) {
                         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
                                 selectedFragment).commit();
@@ -183,7 +188,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     return true;
                 }
             };
-
 
     /* Check if this is the first run after installation. If it is, clear any system-stored back stack information       */
 

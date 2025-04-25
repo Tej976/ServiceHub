@@ -1,7 +1,9 @@
 package com.example.servicehub.booking;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -13,7 +15,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.servicehub.R;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -21,25 +22,22 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class MyBookingsActivity extends AppCompatActivity {
 
     private ListView bookingsListView;
+    private TextView emptyView;
+    private SwipeRefreshLayout swipeRefreshLayout;
     private List<Map<String, String>> bookingsList;
     private BookingsAdapter adapter;
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private TextView emptyBookingsText;
-    private FirebaseUser currentUser;
-    private DatabaseReference bookingsRef;
+    private String userId;
+    private String userType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,34 +50,60 @@ public class MyBookingsActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("My Bookings");
 
-        // Initialize Firebase
-        currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
+        // Get user info from intent
+        userId = getIntent().getStringExtra("userId");
+        userType = getIntent().getStringExtra("userType");
+
+        // If not provided in intent, try to get from Firebase Auth
+        if (userId == null && FirebaseAuth.getInstance().getCurrentUser() != null) {
+            userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        }
 
         // Initialize UI components
         bookingsListView = findViewById(R.id.listViewBookings);
+        emptyView = findViewById(R.id.emptyBookingsView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
-        emptyBookingsText = findViewById(R.id.emptyBookingsText);
 
-        // Check if user is logged in
-        if (currentUser == null) {
-            Toast.makeText(this, "Please login to view your bookings", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-
-        // Initialize the bookings list and adapter
+        // Initialize bookings list
         bookingsList = new ArrayList<>();
+
+        // Set up adapter
         adapter = new BookingsAdapter(
                 this,
                 bookingsList,
                 R.layout.booking_item,
-                new String[]{"serviceType", "providerName", "date", "time", "status"},
-                new int[]{R.id.textViewServiceType, R.id.textViewProviderName,
-                        R.id.textViewBookingDate, R.id.textViewBookingTime, R.id.textViewStatus}
+                new String[]{"serviceProvider", "serviceType", "dateTime", "status", "bookingId"},
+                new int[]{R.id.textViewProviderName, R.id.textViewServiceType, R.id.textViewDateTime, R.id.textViewStatus, R.id.textViewBookingId}
         );
 
         bookingsListView.setAdapter(adapter);
+        bookingsListView.setEmptyView(emptyView);
+
+        // Set item click listener
+        bookingsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Map<String, String> booking = bookingsList.get(position);
+                String bookingId = booking.get("bookingId");
+                String providerId = booking.get("providerId");
+
+                // Start different activity based on user type
+                if ("service_provider".equals(userType)) {
+                    Intent intent = new Intent(MyBookingsActivity.this, BookingDetailsActivity.class);
+                    intent.putExtra("bookingId", bookingId);
+                    intent.putExtra("providerId", providerId);
+                    startActivity(intent);
+                } else {
+                    // For customers, show booking details without accept/reject buttons
+                    Intent intent = new Intent(MyBookingsActivity.this, CustomerBookingDetailsActivity.class);
+                    intent.putExtra("bookingId", bookingId);
+                    startActivity(intent);
+                }
+            }
+        });
+
+        // Load bookings
+        loadBookings();
 
         // Set up swipe to refresh
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -88,144 +112,81 @@ public class MyBookingsActivity extends AppCompatActivity {
                 loadBookings();
             }
         });
-
-        // Load bookings initially
-        loadBookings();
-
-        // Set up a daily check for expired bookings (in a real app, this would be done with a WorkManager or Service)
-        checkExpiredBookings();
     }
 
     private void loadBookings() {
-        swipeRefreshLayout.setRefreshing(true);
-        String userId = currentUser.getUid();
+        if (userId == null) {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+            swipeRefreshLayout.setRefreshing(false);
+            return;
+        }
 
-        // Query bookings for current user
-        Query userBookingsQuery = bookingsRef.orderByChild("customerId").equalTo(userId);
+        DatabaseReference bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
 
-        userBookingsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+        // Query bookings based on user type
+        Query query;
+        if ("service_provider".equals(userType)) {
+            query = bookingsRef.orderByChild("providerId").equalTo(userId);
+        } else {
+            query = bookingsRef.orderByChild("customerId").equalTo(userId);
+        }
+
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 bookingsList.clear();
 
                 for (DataSnapshot bookingSnapshot : dataSnapshot.getChildren()) {
                     String bookingId = bookingSnapshot.getKey();
-                    String serviceType = bookingSnapshot.child("serviceType").getValue(String.class);
                     String providerName = bookingSnapshot.child("providerName").getValue(String.class);
+                    String serviceType = bookingSnapshot.child("serviceType").getValue(String.class);
                     String date = bookingSnapshot.child("date").getValue(String.class);
                     String time = bookingSnapshot.child("time").getValue(String.class);
                     String status = bookingSnapshot.child("status").getValue(String.class);
+                    String providerId = bookingSnapshot.child("providerId").getValue(String.class);
 
-                    // Check if this booking is expired
-                    boolean isExpired = isBookingExpired(date, time);
+                    if (providerName != null && serviceType != null && date != null && time != null && status != null) {
+                        // Create booking map
+                        Map<String, String> booking = new HashMap<>();
+                        booking.put("bookingId", bookingId);
+                        booking.put("serviceProvider", providerName);
+                        booking.put("serviceType", serviceType);
+                        booking.put("dateTime", date + " at " + time);
+                        booking.put("status", status);
+                        booking.put("providerId", providerId);
 
-                    // If booking is expired, update its status or delete it
-                    if (isExpired) {
-                        // Option 1: Delete expired booking
-                        bookingsRef.child(bookingId).removeValue();
-
-                        // Option 2: Mark as expired instead of deleting
-                        // bookingsRef.child(bookingId).child("status").setValue("expired");
-
-                        // Skip adding this booking to the list
-                        continue;
-                    }
-
-                    // If booking is not expired, add it to the list
-                    if (serviceType != null && providerName != null && date != null && time != null) {
-                        Map<String, String> bookingMap = new HashMap<>();
-                        bookingMap.put("id", bookingId);
-                        bookingMap.put("serviceType", serviceType);
-                        bookingMap.put("providerName", providerName);
-                        bookingMap.put("date", date);
-                        bookingMap.put("time", time);
-                        bookingMap.put("status", status != null ? status : "pending");
-
-                        bookingsList.add(bookingMap);
+                        bookingsList.add(booking);
                     }
                 }
+
+                // Sort bookings by date (most recent first)
+                Collections.sort(bookingsList, new Comparator<Map<String, String>>() {
+                    @Override
+                    public int compare(Map<String, String> o1, Map<String, String> o2) {
+                        return o2.get("dateTime").compareTo(o1.get("dateTime"));
+                    }
+                });
 
                 // Update UI
                 adapter.notifyDataSetChanged();
                 swipeRefreshLayout.setRefreshing(false);
 
-                // Show/hide empty state message
+                // Update empty view message based on user type
                 if (bookingsList.isEmpty()) {
-                    emptyBookingsText.setVisibility(View.VISIBLE);
-                    bookingsListView.setVisibility(View.GONE);
-                } else {
-                    emptyBookingsText.setVisibility(View.GONE);
-                    bookingsListView.setVisibility(View.VISIBLE);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                swipeRefreshLayout.setRefreshing(false);
-                Toast.makeText(MyBookingsActivity.this,
-                        "Failed to load bookings: " + databaseError.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private boolean isBookingExpired(String date, String time) {
-        try {
-            // Parse the booking date and time
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-            SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a", Locale.getDefault());
-
-            Date bookingDate = dateFormat.parse(date);
-            Date bookingTime = timeFormat.parse(time);
-
-            // Combine date and time
-            Calendar bookingCalendar = Calendar.getInstance();
-            Calendar timeCalendar = Calendar.getInstance();
-
-            bookingCalendar.setTime(bookingDate);
-            timeCalendar.setTime(bookingTime);
-
-            bookingCalendar.set(Calendar.HOUR_OF_DAY, timeCalendar.get(Calendar.HOUR_OF_DAY));
-            bookingCalendar.set(Calendar.MINUTE, timeCalendar.get(Calendar.MINUTE));
-
-            // Get current time
-            Calendar now = Calendar.getInstance();
-
-            // Check if booking date is in the past
-            return bookingCalendar.before(now);
-
-        } catch (ParseException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    private void checkExpiredBookings() {
-        // In production, this would be done with a WorkManager or a Service
-        // For this example, we're just doing it when the activity opens
-        if (currentUser == null) return;
-
-        String userId = currentUser.getUid();
-        Query userBookingsQuery = bookingsRef.orderByChild("customerId").equalTo(userId);
-
-        userBookingsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot bookingSnapshot : dataSnapshot.getChildren()) {
-                    String bookingId = bookingSnapshot.getKey();
-                    String date = bookingSnapshot.child("date").getValue(String.class);
-                    String time = bookingSnapshot.child("time").getValue(String.class);
-
-                    if (date != null && time != null && isBookingExpired(date, time)) {
-                        // Delete expired booking
-                        bookingsRef.child(bookingId).removeValue();
+                    if ("service_provider".equals(userType)) {
+                        emptyView.setText("No service requests yet");
+                    } else {
+                        emptyView.setText("You haven't booked any services yet");
                     }
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Handle error
+                Toast.makeText(MyBookingsActivity.this,
+                        "Failed to load bookings: " + databaseError.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+                swipeRefreshLayout.setRefreshing(false);
             }
         });
     }

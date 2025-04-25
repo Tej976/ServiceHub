@@ -5,13 +5,13 @@
         android:icon="@drawable/ic_home"
         android:title="Home" />
     <item
+        android:id="@+id/nav_bottom_bookings"
+        android:icon="@drawable/ic_booking"
+        android:title="My Bookings" />
+    <item
         android:id="@+id/nav_bottom_add"
         android:icon="@drawable/ic_add_circle"
-        android:title="Add Service" />
-    <item
-        android:id="@+id/nav_bottom_my_bookings"
-        android:icon="@drawable/ic_booking"
-        android:title="My Bookings"/>
+        android:title="Add" />
 
     <item
         android:id="@+id/nav_bottom_notifications"

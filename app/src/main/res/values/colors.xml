@@ -16,10 +16,12 @@
     <color name="backgroundLight">#FFFFFF</color>
     <color name="backgroundDark">#121212</color>
 
-    <color name="pending_color">#FF9800</color>
-    <color name="confirmed_color">#4CAF50</color>
-    <color name="completed_color">#2196F3</color>
-    <color name="cancelled_color">#F44336</color>
+    <!-- Status colors -->
+    <color name="pending_color">#FF9800</color>   <!-- Orange -->
+    <color name="confirmed_color">#4CAF50</color> <!-- Green -->
+    <color name="completed_color">#2196F3</color> <!-- Blue -->
+    <color name="cancelled_color">#F44336</color> <!-- Red -->
+    <color name="rejected_color">#9E9E9E</color>  <!-- Gray -->
 
 
 </resources>

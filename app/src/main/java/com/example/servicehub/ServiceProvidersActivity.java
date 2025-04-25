@@ -13,6 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -30,6 +32,8 @@ public class ServiceProvidersActivity extends AppCompatActivity {
     private List<Map<String, String>> providersList;
     private CustomServiceProviderAdapter adapter;
     private String serviceName;
+    private String currentUserId;
+    private String userType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +46,18 @@ public class ServiceProvidersActivity extends AppCompatActivity {
             Toast.makeText(this, "Service not specified", Toast.LENGTH_SHORT).show();
             finish();
             return;
+        }
+
+        // Get current user ID and type from MainActivity via intent
+        currentUserId = getIntent().getStringExtra("userId");
+        userType = getIntent().getStringExtra("userType");
+
+        // If not passed, try to get from Firebase Auth
+        if (currentUserId == null) {
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user != null) {
+                currentUserId = user.getUid();
+            }
         }
 
         // Initialize UI components
@@ -94,6 +110,12 @@ public class ServiceProvidersActivity extends AppCompatActivity {
                     String mobile = providerSnapshot.child("mobile").getValue(String.class);
                     String address = providerSnapshot.child("address").getValue(String.class);
                     String providerId = providerSnapshot.getKey(); // Get the provider ID
+
+                    // Skip the current user if they are a service provider
+                    if (userType != null && userType.equals("service_provider") &&
+                            currentUserId != null && currentUserId.equals(providerId)) {
+                        continue; // Skip this provider
+                    }
 
                     if (name != null && mobile != null && address != null) {
                         // Create a map for this provider
