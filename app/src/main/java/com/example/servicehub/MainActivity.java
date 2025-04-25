@@ -247,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void redirectToLogin() {
-        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        Intent intent = new Intent(MainActivity.this, SplashActivity.class);
         // Clear the existing activity stack to ensure a clean start
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
