@@ -1,160 +1,337 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#E4D9F6"
-    android:gravity="center"
-    tools:context=".ProfileActivity">
+    android:fillViewport="true">
 
-
-<TextView
-        android:id="@+id/textViewProfileHeader"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Your Profile"
-        style="@style/HeadingTextStyle"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:orientation="vertical"
+        android:background="#E4D9F6"
+        android:gravity="center"
+        tools:context=".ProfileActivity">
 
-    <androidx.cardview.widget.CardView
-        app:layout_constraintTop_toBottomOf="@+id/textViewProfileHeader"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:elevation="8dp"
-        android:layout_marginTop="40dp"
-        android:layout_margin="30dp"
-        app:cardCornerRadius="30dp"
-        app:cardElevation="20dp">
+        <TextView
+            android:id="@+id/textViewProfileHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Your Profile"
+            style="@style/HeadingTextStyle" />
 
+        <!-- View Mode Layout -->
         <LinearLayout
+            android:id="@+id/viewModeLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:elevation="8dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginHorizontal="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="8dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Name Section -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Name"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#757575" />
+
+                    <TextView
+                        android:id="@+id/textViewNameValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="18sp"
+                        tools:text="John Doe" />
+
+                    <!--Account Type-->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Account Type"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#757575" />
+
+                    <TextView
+                        android:id="@+id/textViewAccountTypeValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="18sp"
+                        tools:text="Service Provider" />
+
+                    <!-- Mobile Section -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Mobile Number"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#757575" />
+
+                    <TextView
+                        android:id="@+id/textViewMobileValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="18sp"
+                        tools:text="+1 123-456-7890" />
+
+                    <!-- Email Section -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Email Address"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#757575" />
+
+                    <TextView
+                        android:id="@+id/textViewEmailValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="18sp"
+                        tools:text="john.doe@example.com" />
+
+                    <!-- Address Section -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Address"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#757575" />
+
+                    <TextView
+                        android:id="@+id/textViewAddressValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="18sp"
+                        tools:text="123 Main Street, Anytown, CA 12345" />
+
+                    <!-- Services Section (visible only for service providers) -->
+                    <LinearLayout
+                        android:id="@+id/servicesSection"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Services Offered"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="#757575" />
+
+                        <TextView
+                            android:id="@+id/textViewServicesValue"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textSize="18sp"
+                            tools:text="Cleaning, Plumbing, Electrical" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Edit Button -->
+            <Button
+                android:id="@+id/buttonEdit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:text="Edit Profile"
+                android:backgroundTint="#6750A4"
+                android:textColor="#FFFFFF" />
+        </LinearLayout>
+
+        <!-- Edit Mode Layout -->
+        <LinearLayout
+            android:id="@+id/editModeLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:visibility="gone">
 
-            <!-- Name Section -->
-            <TextView
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Name"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#757575" />
+                android:elevation="8dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginHorizontal="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="8dp">
 
-            <TextView
-                android:id="@+id/textViewNameValue"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="16dp"
-                android:textSize="18sp"
-                tools:text="John Doe" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <!--Account Type-->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Account Type"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#757575" />
+                    <!-- Name Section -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Name"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#757575" />
 
-            <TextView
-                android:id="@+id/textViewAccountTypeValue"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="16dp"
-                android:textSize="18sp"
-                tools:text="Service Provider" />
+                    <EditText
+                        android:id="@+id/editTextName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="18sp"
+                        android:inputType="textPersonName"
+                        android:hint="Enter your name" />
 
-            <!-- Mobile Section -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Mobile Number"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#757575" />
+                    <!-- Mobile Section -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Mobile Number"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#757575" />
 
-            <TextView
-                android:id="@+id/textViewMobileValue"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="16dp"
-                android:textSize="18sp"
-                tools:text="+1 123-456-7890" />
+                    <EditText
+                        android:id="@+id/editTextMobile"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="18sp"
+                        android:inputType="phone"
+                        android:hint="Enter your mobile number" />
 
-            <!-- Email Section -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Email Address"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#757575" />
+                    <!-- Address Section -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Address"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#757575" />
 
-            <TextView
-                android:id="@+id/textViewEmailValue"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="16dp"
-                android:textSize="18sp"
-                tools:text="john.doe@example.com" />
+                    <EditText
+                        android:id="@+id/editTextAddress"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="18sp"
+                        android:inputType="textPostalAddress"
+                        android:hint="Enter your address" />
 
-            <!-- Address Section -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Address"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#757575" />
+                    <!-- Service Edit Section (visible only for service providers) -->
+                    <LinearLayout
+                        android:id="@+id/serviceEditSection"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
 
-            <TextView
-                android:id="@+id/textViewAddressValue"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="16dp"
-                android:textSize="18sp"
-                tools:text="123 Main Street, Anytown, CA 12345" />
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Services Offered"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="#757575" />
 
-            <!-- Services Section (visible only for service providers) -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="8dp">
+
+                            <Spinner
+                                android:id="@+id/spinnerServices"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1" />
+
+                            <Button
+                                android:id="@+id/buttonAddService"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Add"
+                                android:backgroundTint="#6750A4"
+                                android:textColor="#FFFFFF"
+                                android:layout_marginStart="8dp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/textViewSelectedServices"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="8dp"
+                            android:textSize="16sp"
+                            android:text="Selected Services: None" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Save and Cancel Buttons -->
             <LinearLayout
-                android:id="@+id/servicesSection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp">
 
-                <TextView
-                    android:layout_width="match_parent"
+                <Button
+                    android:id="@+id/buttonSave"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Services Offered"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#757575" />
+                    android:text="Save Changes"
+                    android:backgroundTint="#6750A4"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginEnd="8dp" />
 
-                <TextView
-                    android:id="@+id/textViewServicesValue"
-                    android:layout_width="match_parent"
+                <Button
+                    android:id="@+id/buttonCancel"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textSize="18sp"
-                    tools:text="Cleaning, Plumbing, Electrical" />
+                    android:text="Cancel"
+                    android:backgroundTint="#CCCCCC"
+                    android:textColor="#333333"
+                    android:layout_marginStart="8dp" />
             </LinearLayout>
-
         </LinearLayout>
-
-    </androidx.cardview.widget.CardView>
-
-</LinearLayout>
+    </LinearLayout>
+</ScrollView>
