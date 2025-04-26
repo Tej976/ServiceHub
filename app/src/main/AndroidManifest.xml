@@ -3,6 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.servicehub">
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -68,6 +74,10 @@
         <activity
             android:name=".LoginActivity"
             android:exported="false" />
+        <service
+            android:name=".services.NotificationService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"/>
     </application>
 
 </manifest>

@@ -1,6 +1,7 @@
 package com.example.servicehub;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -16,11 +17,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProfileActivity extends AppCompatActivity {
 
+    private static final String TAG = "ProfileActivity";
     private String userId;
     private String userType;
     private TextView nameTextView;
@@ -85,30 +87,61 @@ public class ProfileActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    // Get user data
-                    User user = dataSnapshot.getValue(User.class);
-                    if (user != null) {
-                        // Display user info
-                        nameTextView.setText(user.getName());
-                        mobileTextView.setText(user.getMobile());
-                        addressTextView.setText(user.getAddress());
-                        emailTextView.setText(user.getEmail());
+                    Log.d(TAG, "Raw data: " + dataSnapshot.toString());
 
-                        // Display services for service providers
-                        if (userType.equals("service_provider") && user.getServices() != null) {
-                            List<String> services = user.getServices();
-                            if (services.isEmpty()) {
-                                servicesTextView.setText("No services selected");
-                            } else {
-                                StringBuilder servicesText = new StringBuilder();
-                                for (int i = 0; i < services.size(); i++) {
-                                    servicesText.append(services.get(i));
-                                    if (i < services.size() - 1) {
-                                        servicesText.append(", ");
-                                    }
+                    // Display basic user info
+                    String name = dataSnapshot.child("name").getValue(String.class);
+                    String mobile = dataSnapshot.child("mobile").getValue(String.class);
+                    String address = dataSnapshot.child("address").getValue(String.class);
+                    String email = dataSnapshot.child("email").getValue(String.class);
+
+                    // Set text views
+                    nameTextView.setText(name);
+                    mobileTextView.setText(mobile);
+                    addressTextView.setText(address);
+                    emailTextView.setText(email);
+
+                    // Display services for service providers
+                    if (userType.equals("service_provider")) {
+                        Log.d(TAG, "Service provider detected");
+
+                        // Check if services node exists
+                        if (dataSnapshot.hasChild("services")) {
+                            try {
+                                // Get services as list
+                                List<String> servicesList = new ArrayList<>();
+
+                                // Iterate through all children of the "services" node
+                                for (DataSnapshot serviceSnapshot : dataSnapshot.child("services").getChildren()) {
+                                    String service = serviceSnapshot.getValue(String.class);
+                                    Log.d(TAG, "Found service: " + service);
+                                    servicesList.add(service);
                                 }
-                                servicesTextView.setText(servicesText.toString());
+
+                                Log.d(TAG, "Services count: " + servicesList.size());
+
+                                if (!servicesList.isEmpty()) {
+                                    // Convert the services list to a comma-separated string
+                                    StringBuilder servicesBuilder = new StringBuilder();
+                                    for (int i = 0; i < servicesList.size(); i++) {
+                                        servicesBuilder.append(servicesList.get(i));
+                                        if (i < servicesList.size() - 1) {
+                                            servicesBuilder.append(", ");
+                                        }
+                                    }
+
+                                    // Set the text to the services
+                                    servicesTextView.setText(servicesBuilder.toString());
+                                } else {
+                                    servicesTextView.setText("No services listed");
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error parsing services: ", e);
+                                servicesTextView.setText("Error loading services");
                             }
+                        } else {
+                            Log.d(TAG, "No 'services' node found in the data");
+                            servicesTextView.setText("No services listed");
                         }
                     }
                 } else {

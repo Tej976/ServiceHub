@@ -41,7 +41,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("Booking Details");
 
         // Initialize UI components
-        tvCustomerName = findViewById(R.id.tvCustomerName);
+     //   tvCustomerName = findViewById(R.id.tvCustomerName);
         tvServiceType = findViewById(R.id.tvServiceType);
         tvDate = findViewById(R.id.tvDate);
         tvTime = findViewById(R.id.tvTime);
@@ -81,6 +81,17 @@ public class BookingDetailsActivity extends AppCompatActivity {
                 updateBookingStatus("rejected");
             }
         });
+
+        // In BookingDetailsActivity.onCreate()
+        String customerName = getIntent().getStringExtra("customerName");
+        String customerPhone = getIntent().getStringExtra("customerPhone");
+
+        // Then set these values to appropriate TextViews
+        TextView customerNameTextView = findViewById(R.id.customerNameTextView);
+        TextView customerPhoneTextView = findViewById(R.id.customerPhoneTextView);
+
+        customerNameTextView.setText(customerName);
+        customerPhoneTextView.setText(customerPhone);
     }
 
     private void loadBookingDetails() {
@@ -192,4 +203,95 @@ public class BookingDetailsActivity extends AppCompatActivity {
         onBackPressed();
         return true;
     }
+
+    private void acceptBooking() {
+        bookingRef.child("status").setValue("confirmed")
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(BookingDetailsActivity.this,
+                                    "Booking confirmed", Toast.LENGTH_SHORT).show();
+
+                            // Get customer ID from the booking
+                            bookingRef.child("customerId").addListenerForSingleValueEvent(
+                                    new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                            String customerId = dataSnapshot.getValue(String.class);
+                                            if (customerId != null) {
+                                                // Send pop-up notification to customer
+                                                sendPopupNotification(customerId, "Booking Confirmed",
+                                                        "Your booking has been confirmed!");
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                                            // Handle error
+                                        }
+                                    });
+                        } else {
+                            Toast.makeText(BookingDetailsActivity.this,
+                                    "Failed to confirm booking", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
+
+    private void rejectBooking() {
+        bookingRef.child("status").setValue("rejected")
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(BookingDetailsActivity.this,
+                                    "Booking rejected", Toast.LENGTH_SHORT).show();
+
+                            // Get customer ID from the booking
+                            bookingRef.child("customerId").addListenerForSingleValueEvent(
+                                    new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                            String customerId = dataSnapshot.getValue(String.class);
+                                            if (customerId != null) {
+                                                // Send pop-up notification to customer
+                                                sendPopupNotification(customerId, "Booking Rejected",
+                                                        "Unfortunately, your booking has been rejected.");
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                                            // Handle error
+                                        }
+                                    });
+                        } else {
+                            Toast.makeText(BookingDetailsActivity.this,
+                                    "Failed to reject booking", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
+
+    // Method to send popup notification
+    private void sendPopupNotification(String userId, String title, String message) {
+        DatabaseReference notificationsRef = FirebaseDatabase.getInstance()
+                .getReference("popup_notifications").child(userId);
+
+        String notificationId = notificationsRef.push().getKey();
+
+        if (notificationId != null) {
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("title", title);
+            notification.put("message", message);
+            notification.put("timestamp", System.currentTimeMillis());
+            notification.put("bookingId", bookingId);
+            notification.put("read", false);
+
+            notificationsRef.child(notificationId).setValue(notification);
+        }
+    }
+
+
 }

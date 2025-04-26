@@ -128,6 +128,10 @@ public class CustomerBookingDetailsActivity extends AppCompatActivity {
                             // Create notification for service provider
                             createNotification(providerId);
 
+                            // Send popup notification
+                            sendPopupNotification(providerId, "Booking Cancelled",
+                                    "A customer has cancelled their booking.");
+
                             // Hide cancel button
                             btnCancel.setVisibility(View.GONE);
                         } else {
@@ -136,6 +140,26 @@ public class CustomerBookingDetailsActivity extends AppCompatActivity {
                         }
                     }
                 });
+    }
+
+    // Method to send popup notification to specific user
+    private void sendPopupNotification(String userId, String title, String message) {
+        // First store notification data in Firebase
+        DatabaseReference notificationsRef = FirebaseDatabase.getInstance()
+                .getReference("popup_notifications").child(userId);
+
+        String notificationId = notificationsRef.push().getKey();
+
+        if (notificationId != null) {
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("title", title);
+            notification.put("message", message);
+            notification.put("timestamp", System.currentTimeMillis());
+            notification.put("bookingId", bookingId);
+            notification.put("read", false);
+
+            notificationsRef.child(notificationId).setValue(notification);
+        }
     }
 
     private void createNotification(String userId) {

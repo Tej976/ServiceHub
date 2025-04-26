@@ -209,6 +209,10 @@ public class RegistrationActivity extends AppCompatActivity {
         });
     }
 
+    // In RegistrationActivity.java, modify the saveUserToDatabase method:
+
+    // In RegistrationActivity.java, modify the saveUserToDatabase method:
+
     private void saveUserToDatabase(String authUid, String name, String mobile, String address, String email) {
         // Create user object
         HashMap<String, Object> userMap = new HashMap<>();
@@ -244,15 +248,26 @@ public class RegistrationActivity extends AppCompatActivity {
             String userId = serviceProvidersRef.push().getKey();
             userMap.put("userId", userId);
 
+            // Don't add services to the userMap directly for better Firebase serialization
+
             // Add service provider to main service_providers node
             serviceProvidersRef.child(userId).setValue(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if (task.isSuccessful()) {
+                        // Add services as a separate child node for better Firebase serialization
+                        if (!selectedServices.isEmpty()) {
+                            // Save each service as a separate entry under a "services" node
+                            DatabaseReference servicesRef = serviceProvidersRef.child(userId).child("services");
+                            for (int i = 0; i < selectedServices.size(); i++) {
+                                servicesRef.child(String.valueOf(i)).setValue(selectedServices.get(i));
+                            }
+                        }
+
                         // Add the service provider to each selected service category node
                         for (String service : selectedServices) {
                             // Create reference to service-specific node
-                            DatabaseReference serviceRef = database.getReference("service_categories").child(service.toLowerCase());
+                            DatabaseReference serviceRef = database.getReference("service_categories").child(service.toLowerCase().replace(" ", "_"));
 
                             // Add this service provider to the service category
                             serviceRef.child(userId).setValue(userMap);

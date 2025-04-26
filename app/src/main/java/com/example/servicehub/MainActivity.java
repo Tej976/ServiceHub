@@ -2,6 +2,7 @@ package com.example.servicehub;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -125,6 +126,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         View headerView = navigationView.getHeaderView(0);
         TextView navUsername = headerView.findViewById(R.id.nav_header_name);
         TextView navUserType = headerView.findViewById(R.id.nav_header_userType);
+
+
+        // In your MainActivity or Application class
+        Intent serviceIntent = new Intent(this, com.example.servicehub.services.NotificationService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent);
+        } else {
+            startService(serviceIntent);
+        }
 
     }
 

@@ -4,30 +4,38 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class User {
+    private String userId;
     private String name;
     private String mobile;
     private String address;
     private String email;
-    private String userId;
     private String authUid;
     private String userType;
     private List<String> services;
 
-    // Empty constructor required for Firebase
+    // Empty constructor needed for Firebase
     public User() {
-        // Initialize services to avoid null pointer exceptions
-        services = new ArrayList<>();
+        // Default constructor required for Firebase
     }
 
-    public User(String name, String mobile, String address, String email, String userId, String authUid, String userType) {
+    public User(String userId, String name, String mobile, String address, String email, String authUid, String userType) {
+        this.userId = userId;
         this.name = name;
         this.mobile = mobile;
         this.address = address;
         this.email = email;
-        this.userId = userId;
         this.authUid = authUid;
         this.userType = userType;
         this.services = new ArrayList<>();
+    }
+
+    // Getters and setters
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getName() {
@@ -60,14 +68,6 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
 
     public String getAuthUid() {

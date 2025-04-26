@@ -92,6 +92,12 @@ public class MyBookingsActivity extends AppCompatActivity {
                     Intent intent = new Intent(MyBookingsActivity.this, BookingDetailsActivity.class);
                     intent.putExtra("bookingId", bookingId);
                     intent.putExtra("providerId", providerId);
+
+                    //pass the customer details
+                    intent.putExtra("customerId", booking.get("customerId"));
+                    intent.putExtra("customerName", booking.get("customerName"));
+                    intent.putExtra("customerPhone", booking.get("customerPhone"));
+
                     startActivity(intent);
                 } else {
                     // For customers, show booking details without accept/reject buttons
@@ -145,6 +151,11 @@ public class MyBookingsActivity extends AppCompatActivity {
                     String status = bookingSnapshot.child("status").getValue(String.class);
                     String providerId = bookingSnapshot.child("providerId").getValue(String.class);
 
+                    // Get customer details
+                    String customerId = bookingSnapshot.child("customerId").getValue(String.class);
+                    String customerName = bookingSnapshot.child("customerName").getValue(String.class);
+                    String customerPhone = bookingSnapshot.child("customerPhone").getValue(String.class);
+
                     if (providerName != null && serviceType != null && date != null && time != null && status != null) {
                         // Create booking map
                         Map<String, String> booking = new HashMap<>();
@@ -154,6 +165,11 @@ public class MyBookingsActivity extends AppCompatActivity {
                         booking.put("dateTime", date + " at " + time);
                         booking.put("status", status);
                         booking.put("providerId", providerId);
+
+                        // Add customer details to booking map
+                        booking.put("customerId", customerId != null ? customerId : "");
+                        booking.put("customerName", customerName != null ? customerName : "");
+                        booking.put("customerPhone", customerPhone != null ? customerPhone : "");
 
                         bookingsList.add(booking);
                     }
@@ -190,7 +206,6 @@ public class MyBookingsActivity extends AppCompatActivity {
             }
         });
     }
-
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();

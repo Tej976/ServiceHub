@@ -53,12 +53,20 @@
                         android:layout_marginBottom="8dp"/>
 
                     <TextView
-                        android:id="@+id/tvCustomerName"
+                        android:id="@+id/customerNameTextView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Customer Name"
                         android:textSize="16sp"
                         android:layout_marginBottom="4dp"/>
+                    <TextView
+                        android:id="@+id/customerPhoneTextView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Customer Phone No"
+                        android:textSize="16sp"
+                        android:layout_marginBottom="4dp"/>
+
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
