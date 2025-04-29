@@ -92,7 +92,7 @@ public class ServiceProvidersActivity extends AppCompatActivity {
     private void loadServiceProviders() {
         // Reference to the specific service category in Firebase
         // Convert service name to lowercase for consistent database references
-        String serviceKey = serviceName.toLowerCase();
+        String serviceKey = serviceName.toLowerCase().replace(" ", "_");
 
         DatabaseReference serviceRef = FirebaseDatabase.getInstance()
                 .getReference("service_categories")
