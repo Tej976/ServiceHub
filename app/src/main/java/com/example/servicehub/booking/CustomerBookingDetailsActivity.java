@@ -24,7 +24,7 @@ import java.util.Map;
 
 public class CustomerBookingDetailsActivity extends AppCompatActivity {
 
-    private TextView tvProviderName, tvServiceType, tvDate, tvTime, tvRequirements, tvStatus;
+    private TextView tvProviderName, tvProviderPhone, tvServiceType, tvDate, tvTime, tvRequirements, tvStatus;
     private Button btnCancel;
     private String bookingId;
     private DatabaseReference bookingRef, notificationsRef;
@@ -43,6 +43,7 @@ public class CustomerBookingDetailsActivity extends AppCompatActivity {
 
         // Initialize UI components
         tvProviderName = findViewById(R.id.tvProviderName);
+        tvProviderPhone = findViewById(R.id.tvProviderPhone);
         tvServiceType = findViewById(R.id.tvServiceType);
         tvDate = findViewById(R.id.tvDate);
         tvTime = findViewById(R.id.tvTime);
@@ -80,7 +81,6 @@ public class CustomerBookingDetailsActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    String providerName = dataSnapshot.child("providerName").getValue(String.class);
                     String serviceType = dataSnapshot.child("serviceType").getValue(String.class);
                     String date = dataSnapshot.child("date").getValue(String.class);
                     String time = dataSnapshot.child("time").getValue(String.class);
@@ -88,19 +88,33 @@ public class CustomerBookingDetailsActivity extends AppCompatActivity {
                     String status = dataSnapshot.child("status").getValue(String.class);
                     providerId = dataSnapshot.child("providerId").getValue(String.class);
 
-                    // Update UI
-                    tvProviderName.setText(providerName);
-                    tvServiceType.setText(serviceType);
-                    tvDate.setText(date);
-                    tvTime.setText(time);
-                    tvRequirements.setText(requirements);
-                    tvStatus.setText(status.substring(0, 1).toUpperCase() + status.substring(1));
+                    // Try to get provider name from booking data
+                    String providerName = dataSnapshot.child("providerName").getValue(String.class);
+
+                    // Update UI with booking details
+                    if (providerName != null && !providerName.isEmpty()) {
+                        tvProviderName.setText(providerName);
+                    } else {
+                        tvProviderName.setText("Loading provider info...");
+                    }
+
+                    tvServiceType.setText(serviceType != null ? serviceType : "N/A");
+                    tvDate.setText(date != null ? date : "N/A");
+                    tvTime.setText(time != null ? time : "N/A");
+                    tvRequirements.setText(requirements != null ? requirements : "N/A");
+                    tvStatus.setText(status != null ?
+                            status.substring(0, 1).toUpperCase() + status.substring(1) : "N/A");
 
                     // Show cancel button only for pending or confirmed bookings
                     if ("pending".equals(status) || "confirmed".equals(status)) {
                         btnCancel.setVisibility(View.VISIBLE);
                     } else {
                         btnCancel.setVisibility(View.GONE);
+                    }
+
+                    // Get provider details from database
+                    if (providerId != null) {
+                        loadProviderDetails(providerId);
                     }
                 } else {
                     Toast.makeText(CustomerBookingDetailsActivity.this, "Booking no longer exists", Toast.LENGTH_SHORT).show();
@@ -111,6 +125,39 @@ public class CustomerBookingDetailsActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(CustomerBookingDetailsActivity.this, "Failed to load booking details", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void loadProviderDetails(String providerId) {
+        DatabaseReference providerRef = FirebaseDatabase.getInstance()
+                .getReference("service_providers").child(providerId);
+
+        providerRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String name = snapshot.child("name").getValue(String.class);
+                    String phone = snapshot.child("mobile").getValue(String.class);
+
+                    // Update provider name if it exists
+                    if (name != null && !name.isEmpty()) {
+                        tvProviderName.setText(name);
+                    }
+
+                    // Set phone number
+                    if (phone != null && !phone.isEmpty()) {
+                        tvProviderPhone.setText(phone);
+                    } else {
+                        tvProviderPhone.setText("N/A");
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(CustomerBookingDetailsActivity.this,
+                        "Failed to load provider details", Toast.LENGTH_SHORT).show();
             }
         });
     }

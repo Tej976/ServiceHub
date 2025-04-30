@@ -114,7 +114,7 @@ public class ServiceProvidersActivity extends AppCompatActivity {
                     // Skip the current user if they are a service provider
                     if (userType != null && userType.equals("service_provider") &&
                             currentUserId != null && currentUserId.equals(providerId)) {
-                        continue; // Skip this provider
+                        continue; // Skip this customer
                     }
 
                     if (name != null && mobile != null && address != null) {

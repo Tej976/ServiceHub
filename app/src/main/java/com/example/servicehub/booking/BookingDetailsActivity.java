@@ -70,6 +70,11 @@ public class BookingDetailsActivity extends AppCompatActivity {
         bookingRef = FirebaseDatabase.getInstance().getReference("bookings").child(bookingId);
         notificationsRef = FirebaseDatabase.getInstance().getReference("notifications");
 
+        // Set default text for customer details
+        tvCustomerName.setText("Loading customer details...");
+        tvPhoneNo.setText("Loading...");
+        tvAdd.setText("Loading...");
+
         // Load booking details
         loadBookingDetails();
 
@@ -101,47 +106,12 @@ public class BookingDetailsActivity extends AppCompatActivity {
                     String status = dataSnapshot.child("status").getValue(String.class);
                     customerId = dataSnapshot.child("customerId").getValue(String.class);
 
-                    // Get customer name from database
-                    if (customerId != null) {
-                        DatabaseReference customerRef = FirebaseDatabase.getInstance()
-                                .getReference("customers").child(customerId);
-
-                        // Load customer name
-                        customerRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                if (snapshot.exists()) {
-                                    String name = snapshot.child("name").getValue(String.class);
-                                    String phone = snapshot.child("phone").getValue(String.class);
-                                    String address = snapshot.child("address").getValue(String.class);
-
-                                    // Only update UI if TextViews are initialized
-                                    if (tvCustomerName != null) {
-                                        tvCustomerName.setText(name != null ? name : "N/A");
-                                    }
-                                    if (tvPhoneNo != null) {
-                                        tvPhoneNo.setText(phone != null ? phone : "N/A");
-                                    }
-                                    if (tvAdd != null) {
-                                        tvAdd.setText(address != null ? address : "N/A");
-                                    }
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
-                                Toast.makeText(BookingDetailsActivity.this,
-                                        "Failed to load customer details", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-
-                    // Update UI
-                    tvServiceType.setText(serviceType);
-                    tvDate.setText(date);
-                    tvTime.setText(time);
-                    tvRequirements.setText(requirements);
-                    tvStatus.setText(status);
+                    // Update booking details UI
+                    tvServiceType.setText(serviceType != null ? serviceType : "N/A");
+                    tvDate.setText(date != null ? date : "N/A");
+                    tvTime.setText(time != null ? time : "N/A");
+                    tvRequirements.setText(requirements != null ? requirements : "N/A");
+                    tvStatus.setText(status != null ? status : "N/A");
 
                     // Update status text color based on status
                     updateStatusColor(status);
@@ -154,6 +124,16 @@ public class BookingDetailsActivity extends AppCompatActivity {
                         btnAccept.setVisibility(View.GONE);
                         btnReject.setVisibility(View.GONE);
                     }
+
+                    // Get customer details from database
+                    if (customerId != null) {
+                        loadCustomerDetails(customerId);
+                    } else {
+                        // If customerId is null, display a message
+                        tvCustomerName.setText("Customer info not available");
+                        tvPhoneNo.setText("N/A");
+                        tvAdd.setText("N/A");
+                    }
                 } else {
                     Toast.makeText(BookingDetailsActivity.this, "Booking no longer exists", Toast.LENGTH_SHORT).show();
                     finish();
@@ -163,6 +143,49 @@ public class BookingDetailsActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(BookingDetailsActivity.this, "Failed to load booking details", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void loadCustomerDetails(String customerId) {
+        DatabaseReference customerRef = FirebaseDatabase.getInstance()
+                .getReference("customers").child(customerId);
+
+        customerRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String name = snapshot.child("name").getValue(String.class);
+                    String phone = snapshot.child("mobile").getValue(String.class);
+                    String address = snapshot.child("address").getValue(String.class);
+
+                    // Log data to verify what's being retrieved
+                    System.out.println("Customer Data - Name: " + name + ", Phone: " + phone + ", Address: " + address);
+
+                    // Update UI with customer details
+                    tvCustomerName.setText(name != null && !name.isEmpty() ? name : "N/A");
+                    tvPhoneNo.setText(phone != null && !phone.isEmpty() ? phone : "N/A");
+                    tvAdd.setText(address != null && !address.isEmpty() ? address : "N/A");
+                } else {
+                    // If customer data doesn't exist
+                    tvCustomerName.setText("Customer not found");
+                    tvPhoneNo.setText("N/A");
+                    tvAdd.setText("N/A");
+
+                    Toast.makeText(BookingDetailsActivity.this,
+                            "Customer details not found", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(BookingDetailsActivity.this,
+                        "Failed to load customer details", Toast.LENGTH_SHORT).show();
+
+                // Set error text in case of database error
+                tvCustomerName.setText("Error loading customer");
+                tvPhoneNo.setText("Error");
+                tvAdd.setText("Error");
             }
         });
     }
