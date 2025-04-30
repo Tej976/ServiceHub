@@ -53,17 +53,24 @@
                         android:layout_marginBottom="8dp"/>
 
                     <TextView
-                        android:id="@+id/customerNameTextView"
+                        android:id="@+id/customerNameTV"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Customer Name"
                         android:textSize="16sp"
                         android:layout_marginBottom="4dp"/>
                     <TextView
-                        android:id="@+id/customerPhoneTextView"
+                        android:id="@+id/customerPhoneTV"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Customer Phone No"
+                        android:textSize="16sp"
+                        android:layout_marginBottom="4dp"/>
+                    <TextView
+                        android:id="@+id/customerAddTV"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Customer Address"
                         android:textSize="16sp"
                         android:layout_marginBottom="4dp"/>
 

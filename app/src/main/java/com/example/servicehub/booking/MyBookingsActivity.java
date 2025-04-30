@@ -79,13 +79,14 @@ public class MyBookingsActivity extends AppCompatActivity {
         bookingsList = new ArrayList<>();
         filteredBookingsList = new ArrayList<>();
 
-        // Set up adapter
+        // Set up adapter with new parameter - pass userType
         adapter = new BookingsAdapter(
                 this,
                 filteredBookingsList,
                 R.layout.booking_item,
                 new String[]{"serviceProvider", "serviceType", "dateTime", "status", "bookingId"},
-                new int[]{R.id.textViewProviderName, R.id.textViewServiceType, R.id.textViewDateTime, R.id.textViewStatus, R.id.textViewBookingId}
+                new int[]{R.id.textViewProviderName, R.id.textViewServiceType, R.id.textViewDateTime, R.id.textViewStatus, R.id.textViewBookingId},
+                userType  // Pass userType to adapter
         );
 
         bookingsListView.setAdapter(adapter);
@@ -104,12 +105,6 @@ public class MyBookingsActivity extends AppCompatActivity {
                     Intent intent = new Intent(MyBookingsActivity.this, BookingDetailsActivity.class);
                     intent.putExtra("bookingId", bookingId);
                     intent.putExtra("providerId", providerId);
-
-                    //pass the customer details
-                    intent.putExtra("customerId", booking.get("customerId"));
-                    intent.putExtra("customerName", booking.get("customerName"));
-                    intent.putExtra("customerPhone", booking.get("customerPhone"));
-
                     startActivity(intent);
                 } else {
                     // For customers, show booking details without accept/reject buttons
@@ -149,8 +144,6 @@ public class MyBookingsActivity extends AppCompatActivity {
             }
         });
     }
-
-
 
     private void filterBookingsByStatus(int tabPosition) {
         filteredBookingsList.clear();
@@ -213,8 +206,6 @@ public class MyBookingsActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
     }
 
-
-
     private void loadBookings() {
         if (userId == null) {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
@@ -249,22 +240,23 @@ public class MyBookingsActivity extends AppCompatActivity {
                     // Get customer details
                     String customerId = bookingSnapshot.child("customerId").getValue(String.class);
                     String customerName = bookingSnapshot.child("customerName").getValue(String.class);
-                    String customerPhone = bookingSnapshot.child("customerPhone").getValue(String.class);
 
-                    if (providerName != null && serviceType != null && date != null && time != null && status != null) {
+                    // If customerName is null or empty, fetch from database
+                    if ((customerName == null || customerName.isEmpty()) && customerId != null) {
+                        fetchCustomerDetails(bookingId, customerId);
+                    }
+
+                    if (serviceType != null && date != null && time != null && status != null) {
                         // Create booking map
                         Map<String, String> booking = new HashMap<>();
                         booking.put("bookingId", bookingId);
-                        booking.put("serviceProvider", providerName);
+                        booking.put("serviceProvider", providerName != null ? providerName : "");
                         booking.put("serviceType", serviceType);
                         booking.put("dateTime", date + " at " + time);
                         booking.put("status", status);
-                        booking.put("providerId", providerId);
-
-                        // Add customer details to booking map
+                        booking.put("providerId", providerId != null ? providerId : "");
                         booking.put("customerId", customerId != null ? customerId : "");
                         booking.put("customerName", customerName != null ? customerName : "");
-                        booking.put("customerPhone", customerPhone != null ? customerPhone : "");
 
                         bookingsList.add(booking);
                     }
@@ -291,6 +283,48 @@ public class MyBookingsActivity extends AppCompatActivity {
                         "Failed to load bookings: " + databaseError.getMessage(),
                         Toast.LENGTH_SHORT).show();
                 swipeRefreshLayout.setRefreshing(false);
+            }
+        });
+    }
+
+    // New method to fetch customer details if they're not already in the booking data
+    private void fetchCustomerDetails(final String bookingId, String customerId) {
+        DatabaseReference customerRef = FirebaseDatabase.getInstance()
+                .getReference("customers").child(customerId);
+
+        customerRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String name = snapshot.child("name").getValue(String.class);
+                    String phone = snapshot.child("phone").getValue(String.class);
+
+                    // Update booking in Firebase with customer details
+                    if (name != null) {
+                        DatabaseReference bookingRef = FirebaseDatabase.getInstance()
+                                .getReference("bookings").child(bookingId);
+                        bookingRef.child("customerName").setValue(name);
+
+                        // Also update our local list
+                        for (Map<String, String> booking : bookingsList) {
+                            if (bookingId.equals(booking.get("bookingId"))) {
+                                booking.put("customerName", name);
+                                if (phone != null) {
+                                    booking.put("customerPhone", phone);
+                                }
+                                break;
+                            }
+                        }
+
+                        // Refresh the adapter to show the updated customer name
+                        filterBookingsByStatus(tabLayout.getSelectedTabPosition());
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle error silently - this is just an enhancement
             }
         });
     }

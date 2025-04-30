@@ -18,8 +18,11 @@ import androidx.appcompat.widget.Toolbar;
 import com.example.servicehub.MainActivity;
 import com.example.servicehub.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -111,8 +114,8 @@ public class BookingActivity extends AppCompatActivity {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
                 selectedDate = dateFormat.format(calendar.getTime());
                 btnSelectDate.setText("Date: " + selectedDate);
-                }
-            },
+            }
+        },
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
@@ -133,8 +136,8 @@ public class BookingActivity extends AppCompatActivity {
                 SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a", Locale.getDefault());
                 selectedTime = timeFormat.format(calendar.getTime());
                 btnSelectTime.setText("Time: " + selectedTime);
-                    }
-                },
+            }
+        },
                 calendar.get(Calendar.HOUR_OF_DAY),
                 calendar.get(Calendar.MINUTE), false
         );
@@ -142,7 +145,7 @@ public class BookingActivity extends AppCompatActivity {
     }
 
     private void confirmBooking() {
-       String requirements = etRequirements.getText().toString().trim();
+        String requirements = etRequirements.getText().toString().trim();
 
         // Validate inputs
         if (selectedDate.isEmpty()) {
@@ -161,9 +164,52 @@ public class BookingActivity extends AppCompatActivity {
             userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         }
 
+        // First fetch customer details to include in booking
+        fetchCustomerDetails(userId, requirements);
+    }
+
+    private void fetchCustomerDetails(final String userId, final String requirements) {
+        // Only proceed if we have a valid user ID
+        if ("guest".equals(userId)) {
+            Toast.makeText(this, "You must be logged in to book a service", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        DatabaseReference customerRef = FirebaseDatabase.getInstance()
+                .getReference("customers").child(userId);
+
+        customerRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    // Get customer name and phone
+                    String customerName = dataSnapshot.child("name").getValue(String.class);
+                    String customerPhone = dataSnapshot.child("phone").getValue(String.class);
+                    String customerAddress = dataSnapshot.child("address").getValue(String.class);
+
+                    // Create booking with customer details
+                    createBooking(userId, requirements, customerName, customerPhone, customerAddress);
+                } else {
+                    // No customer profile found - create booking without customer details
+                    createBooking(userId, requirements, "", "", "");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(BookingActivity.this, "Failed to load customer profile: " + databaseError.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void createBooking(String userId, String requirements, String customerName, String customerPhone, String customerAddress) {
         // Create booking object
         Map<String, Object> booking = new HashMap<>();
         booking.put("customerId", userId);
+        booking.put("customerName", customerName); // Add customer name
+        booking.put("customerPhone", customerPhone); // Add customer phone
+        booking.put("customerAddress", customerAddress); // Add customer address
         booking.put("requirements", requirements);
         booking.put("providerId", providerId);
         booking.put("providerName", tvProviderName.getText().toString());
@@ -182,6 +228,10 @@ public class BookingActivity extends AppCompatActivity {
         bookingsRef.child(bookingId).setValue(booking).addOnSuccessListener(aVoid -> {
             Toast.makeText(BookingActivity.this, "Booking confirmed successfully!", Toast.LENGTH_LONG).show();
 
+            // Create notification for service provider
+            createNotification(providerId, "New Booking Request",
+                    "You have a new booking request for " + serviceName, bookingId);
+
             // Navigate to MainActivity
             Intent intent = new Intent(BookingActivity.this, MainActivity.class);
             // Add these lines to pass the necessary user information
@@ -196,7 +246,48 @@ public class BookingActivity extends AppCompatActivity {
         }).addOnFailureListener(e -> {
             Toast.makeText(BookingActivity.this, "Failed to book: " + e.getMessage(), Toast.LENGTH_LONG).show();
         });
+    }
 
+    // Method to create notification for service provider
+    private void createNotification(String userId, String title, String message, String bookingId) {
+        DatabaseReference notificationsRef = FirebaseDatabase.getInstance()
+                .getReference("notifications");
+
+        String notificationId = notificationsRef.push().getKey();
+
+        if (notificationId != null) {
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("userId", userId);
+            notification.put("title", title);
+            notification.put("message", message);
+            notification.put("timestamp", System.currentTimeMillis());
+            notification.put("bookingId", bookingId);
+            notification.put("read", false);
+
+            notificationsRef.child(notificationId).setValue(notification);
+
+            // Also send popup notification
+            sendPopupNotification(userId, title, message, bookingId);
+        }
+    }
+
+    // Method to send popup notification
+    private void sendPopupNotification(String userId, String title, String message, String bookingId) {
+        DatabaseReference popupNotificationsRef = FirebaseDatabase.getInstance()
+                .getReference("popup_notifications").child(userId);
+
+        String notificationId = popupNotificationsRef.push().getKey();
+
+        if (notificationId != null) {
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("title", title);
+            notification.put("message", message);
+            notification.put("timestamp", System.currentTimeMillis());
+            notification.put("bookingId", bookingId);
+            notification.put("read", false);
+
+            popupNotificationsRef.child(notificationId).setValue(notification);
+        }
     }
 
     @Override
