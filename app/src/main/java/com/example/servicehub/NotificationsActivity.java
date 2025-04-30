@@ -1,7 +1,9 @@
 package com.example.servicehub;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -11,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.example.servicehub.booking.BookingDetailsActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -29,13 +32,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import android.widget.SimpleAdapter;
+import com.example.servicehub.NotificationAdapter;
 
 public class NotificationsActivity extends AppCompatActivity {
 
     private ListView notificationsListView;
     private TextView emptyView;
     private SwipeRefreshLayout swipeRefreshLayout;
-    private List<Map<String, String>> notificationsList;
+    private List<Map<String, Object>> notificationsList;
     private SimpleAdapter adapter;
     private String userId;
     private String userType;
@@ -70,17 +74,42 @@ public class NotificationsActivity extends AppCompatActivity {
         // Initialize notifications list
         notificationsList = new ArrayList<>();
 
-        // Set up adapter
-        adapter = new SimpleAdapter(
+        // Set up adapter with custom notification adapter
+        adapter = new NotificationAdapter(
                 this,
                 notificationsList,
                 R.layout.notification_item,
                 new String[]{"title", "message", "time"},
-                new int[]{R.id.textViewNotificationTitle, R.id.textViewNotificationMessage, R.id.textViewNotificationTime}
+                new int[]{R.id.textViewNotificationTitle, R.id.textViewNotificationMessage,
+                        R.id.textViewNotificationTime}
         );
 
         notificationsListView.setAdapter(adapter);
         notificationsListView.setEmptyView(emptyView);
+
+        // Set item click listener
+        notificationsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Map<String, Object> notification = notificationsList.get(position);
+                String bookingId = (String) notification.get("bookingId");
+                String notificationId = (String) notification.get("id");
+
+                // Mark notification as read
+                if (notificationId != null) {
+                    DatabaseReference notifRef = FirebaseDatabase.getInstance()
+                            .getReference("notifications").child(notificationId);
+                    notifRef.child("read").setValue(true);
+                }
+
+                // Navigate to booking details if there's a booking ID
+                if (bookingId != null && !bookingId.isEmpty()) {
+                    Intent intent = new Intent(NotificationsActivity.this, BookingDetailsActivity.class);
+                    intent.putExtra("bookingId", bookingId);
+                    startActivity(intent);
+                }
+            }
+        });
 
         // Load notifications
         loadNotifications();
@@ -115,6 +144,9 @@ public class NotificationsActivity extends AppCompatActivity {
                     String title = notificationSnapshot.child("title").getValue(String.class);
                     String message = notificationSnapshot.child("message").getValue(String.class);
                     Long timestamp = notificationSnapshot.child("timestamp").getValue(Long.class);
+                    String bookingId = notificationSnapshot.child("bookingId").getValue(String.class);
+                    Boolean read = notificationSnapshot.child("read").getValue(Boolean.class);
+                    if (read == null) read = false;
 
                     if (title != null && message != null && timestamp != null) {
                         // Format timestamp
@@ -122,20 +154,26 @@ public class NotificationsActivity extends AppCompatActivity {
                         String timeString = sdf.format(new Date(timestamp));
 
                         // Create notification map
-                        Map<String, String> notification = new HashMap<>();
+                        Map<String, Object> notification = new HashMap<>();
+                        notification.put("id", notificationSnapshot.getKey());
                         notification.put("title", title);
                         notification.put("message", message);
                         notification.put("time", timeString);
+                        notification.put("bookingId", bookingId);
+                        notification.put("read", read ? "read" : "unread");
+                        notification.put("timestamp", timestamp);
 
                         notificationsList.add(notification);
                     }
                 }
 
                 // Sort notifications by timestamp (newest first)
-                Collections.sort(notificationsList, new Comparator<Map<String, String>>() {
+                Collections.sort(notificationsList, new Comparator<Map<String, Object>>() {
                     @Override
-                    public int compare(Map<String, String> o1, Map<String, String> o2) {
-                        return o2.get("time").compareTo(o1.get("time"));
+                    public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+                        Long t1 = (Long) o1.get("timestamp");
+                        Long t2 = (Long) o2.get("timestamp");
+                        return t2.compareTo(t1); // Descending order
                     }
                 });
 
