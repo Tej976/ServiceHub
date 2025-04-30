@@ -107,8 +107,8 @@ public class RegistrationActivity extends AppCompatActivity {
                     nameEditText.setError("Name is required");
                     return;
                 }
-                if (mobile.isEmpty()) {
-                    mobileEditText.setError("Mobile number is required");
+                if (mobile.isEmpty() || mobile.length() != 10) {
+                    mobileEditText.setError("Enter a valid Mobile Number");
                     return;
                 }
                 if (address.isEmpty()) {
@@ -119,13 +119,9 @@ public class RegistrationActivity extends AppCompatActivity {
                     emailEditText.setError("Email is required");
                     return;
                 }
-                if (password.isEmpty()) {
-                    passwordEditText.setError("Password is required");
-                    return;
-                }
 
                 // Password strength check
-                if (password.length() < 6) {
+                if (password.isEmpty() || password.length() < 6) {
                     passwordEditText.setError("Password must be at least 6 characters long");
                     return;
                 }

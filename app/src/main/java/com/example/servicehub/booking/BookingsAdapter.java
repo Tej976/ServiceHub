@@ -51,14 +51,20 @@ public class BookingsAdapter extends SimpleAdapter {
                     statusView.setTextColor(ContextCompat.getColor(context, R.color.completed_color));
                     break;
                 case "cancelled":
+                case "canceled":
+                case "rejected":
                     statusView.setTextColor(ContextCompat.getColor(context, R.color.cancelled_color));
                     break;
                 default:
                     statusView.setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray));
                     break;
             }
+
+            // Capitalize first letter of status
+            statusView.setText(status.substring(0, 1).toUpperCase() + status.substring(1));
         }
 
         return view;
     }
+
 }

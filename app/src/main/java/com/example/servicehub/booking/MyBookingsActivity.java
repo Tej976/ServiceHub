@@ -14,6 +14,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.servicehub.R;
+import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -35,9 +36,11 @@ public class MyBookingsActivity extends AppCompatActivity {
     private TextView emptyView;
     private SwipeRefreshLayout swipeRefreshLayout;
     private List<Map<String, String>> bookingsList;
+    private List<Map<String, String>> filteredBookingsList;
     private BookingsAdapter adapter;
     private String userId;
     private String userType;
+    private TabLayout tabLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,13 +67,22 @@ public class MyBookingsActivity extends AppCompatActivity {
         emptyView = findViewById(R.id.emptyBookingsView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
 
-        // Initialize bookings list
+        // Initialize TabLayout
+        tabLayout = findViewById(R.id.tabLayout);
+        tabLayout.addTab(tabLayout.newTab().setText("All"));
+        tabLayout.addTab(tabLayout.newTab().setText("Pending"));
+        tabLayout.addTab(tabLayout.newTab().setText("Confirmed"));
+        tabLayout.addTab(tabLayout.newTab().setText("Completed"));
+        tabLayout.addTab(tabLayout.newTab().setText("Cancelled"));
+
+        // Initialize bookings lists
         bookingsList = new ArrayList<>();
+        filteredBookingsList = new ArrayList<>();
 
         // Set up adapter
         adapter = new BookingsAdapter(
                 this,
-                bookingsList,
+                filteredBookingsList,
                 R.layout.booking_item,
                 new String[]{"serviceProvider", "serviceType", "dateTime", "status", "bookingId"},
                 new int[]{R.id.textViewProviderName, R.id.textViewServiceType, R.id.textViewDateTime, R.id.textViewStatus, R.id.textViewBookingId}
@@ -83,7 +95,7 @@ public class MyBookingsActivity extends AppCompatActivity {
         bookingsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Map<String, String> booking = bookingsList.get(position);
+                Map<String, String> booking = filteredBookingsList.get(position);
                 String bookingId = booking.get("bookingId");
                 String providerId = booking.get("providerId");
 
@@ -108,6 +120,24 @@ public class MyBookingsActivity extends AppCompatActivity {
             }
         });
 
+        // Set up tab selection listener
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                filterBookingsByStatus(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+                // Do nothing
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+                // Do nothing
+            }
+        });
+
         // Load bookings
         loadBookings();
 
@@ -119,6 +149,71 @@ public class MyBookingsActivity extends AppCompatActivity {
             }
         });
     }
+
+
+
+    private void filterBookingsByStatus(int tabPosition) {
+        filteredBookingsList.clear();
+
+        if (tabPosition == 0) {
+            // Show all bookings
+            filteredBookingsList.addAll(bookingsList);
+            emptyView.setText(bookingsList.isEmpty() ?
+                    ("service_provider".equals(userType) ? "No service requests yet" : "You haven't booked any services yet") :
+                    "No bookings found");
+        } else {
+            // Filter bookings by status
+            String status = "";
+            boolean isCancelledTab = false;
+
+            switch (tabPosition) {
+                case 1:
+                    status = "pending";
+                    break;
+                case 2:
+                    status = "confirmed";
+                    break;
+                case 3:
+                    status = "completed";
+                    break;
+                case 4:
+                    status = "cancelled";
+                    isCancelledTab = true;
+                    break;
+            }
+
+            // Add bookings with matching status to filtered list
+            for (Map<String, String> booking : bookingsList) {
+                String bookingStatus = booking.get("status");
+
+                if (bookingStatus != null) {
+                    // For the Cancelled tab, include both "cancelled" and "rejected" statuses
+                    if (isCancelledTab) {
+                        if (bookingStatus.equalsIgnoreCase("cancelled") ||
+                                bookingStatus.equalsIgnoreCase("canceled") ||
+                                bookingStatus.equalsIgnoreCase("rejected")) {
+                            filteredBookingsList.add(booking);
+                        }
+                    } else if (bookingStatus.equalsIgnoreCase(status)) {
+                        // For other tabs, use exact status matching
+                        filteredBookingsList.add(booking);
+                    }
+                }
+            }
+
+            // Update empty view message for Cancelled tab to include both statuses
+            if (isCancelledTab) {
+                emptyView.setText("No cancelled or rejected bookings");
+            } else {
+                emptyView.setText("No " + status + " bookings");
+            }
+        }
+
+        // Notify adapter of data change
+        adapter.notifyDataSetChanged();
+    }
+
+
 
     private void loadBookings() {
         if (userId == null) {
@@ -183,18 +278,11 @@ public class MyBookingsActivity extends AppCompatActivity {
                     }
                 });
 
-                // Update UI
-                adapter.notifyDataSetChanged();
-                swipeRefreshLayout.setRefreshing(false);
+                // Apply current filter
+                filterBookingsByStatus(tabLayout.getSelectedTabPosition());
 
-                // Update empty view message based on user type
-                if (bookingsList.isEmpty()) {
-                    if ("service_provider".equals(userType)) {
-                        emptyView.setText("No service requests yet");
-                    } else {
-                        emptyView.setText("You haven't booked any services yet");
-                    }
-                }
+                // Stop refresh animation
+                swipeRefreshLayout.setRefreshing(false);
             }
 
             @Override
@@ -206,6 +294,7 @@ public class MyBookingsActivity extends AppCompatActivity {
             }
         });
     }
+
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();
