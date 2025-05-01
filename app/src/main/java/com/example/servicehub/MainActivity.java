@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.servicehub.notifications.NotificationsActivity;
 import com.example.servicehub.booking.MyBookingsActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -129,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
         // In your MainActivity or Application class
-        Intent serviceIntent = new Intent(this, com.example.servicehub.services.NotificationService.class);
+        Intent serviceIntent = new Intent(this, com.example.servicehub.notifications.NotificationService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(serviceIntent);
         } else {

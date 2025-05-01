@@ -54,7 +54,7 @@
             android:name=".ServiceProvidersActivity"
             android:exported="false" />
         <activity
-            android:name=".NotificationsActivity"
+            android:name=".notifications.NotificationsActivity"
             android:exported="false" />
         <activity
             android:name=".UserTypeSelectionActivity"
@@ -71,11 +71,8 @@
         <activity
             android:name=".AddActivity"
             android:exported="false" />
-        <activity
-            android:name=".LoginActivity"
-            android:exported="false" />
         <service
-            android:name=".services.NotificationService"
+            android:name=".notifications.NotificationService"
             android:exported="false"
             android:foregroundServiceType="dataSync"/>
     </application>

@@ -20,14 +20,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class AddActivity extends AppCompatActivity {
-    private RecyclerView recyclerView;
-   // private CardAdapter adapter;
-  //  private List<CardItem> cardList = new ArrayList<>();                       // List to hold CardItem objects
-  //  private int cardCount = 1;                                                 // Counter to keep track of the number of cards added
+    private RecyclerView recyclerView;                                        // Counter to keep track of the number of cards added
     private final String DEFAULT_EMAIL_ADDRESS = "tejaswininikam642004@gmail.com";     // Default email address
     private EditText serviceNameInput;
     private EditText serviceDescription;
@@ -67,20 +62,11 @@ public class AddActivity extends AppCompatActivity {
             fetchProviderInfo();
         }
 
-        // Initialize the RecyclerView
-     //   recyclerView = findViewById(R.id.recyclerView);                        // Find the RecyclerView by its ID
-      //  recyclerView.setLayoutManager(new LinearLayoutManager(this));          // Set a LinearLayoutManager for vertical scrolling
-
-        // Initialize the adapter with the card list and the current context
-   //     adapter = new CardAdapter(cardList, this);
-     //   recyclerView.setAdapter(adapter);                                      // Set the adapter to the RecyclerView
-
         // Find the button that adds new cards
         Button addCardButton = findViewById(R.id.addCardButton);
 
         // Set an OnClickListener on the button to add a new card and send an email when clicked
         addCardButton.setOnClickListener(v -> {
-  //          addNewCard();
             sendEmail(serviceNameInput, serviceDescription);
         });
     }
@@ -115,21 +101,6 @@ public class AddActivity extends AppCompatActivity {
             }
         });
     }
-
-    // Method to add a new card to the list
-   /* private void addNewCard() {
-        // Determine the action type based on the current card count (cycling through 1, 2, 3)
-        int actionType = cardCount % 3 + 1; // This will give values 1, 2, or 3
-
-        // Create a new CardItem with a title and action type, and add it to the list
-        cardList.add(new CardItem("Card " + cardCount, actionType));
-
-        // Notify the adapter that a new item has been inserted at the end of the list
-        adapter.notifyItemInserted(cardList.size() - 1);
-
-        // Increment the card count for the next card
-        cardCount++;
-    }*/
 
     // Method to send an email using an implicit intent
     private void sendEmail(EditText serviceNameInput, EditText serviceDescription) {

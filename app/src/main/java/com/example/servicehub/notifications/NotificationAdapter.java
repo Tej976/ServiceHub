@@ -1,9 +1,11 @@
-package com.example.servicehub;
+package com.example.servicehub.notifications;
 
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SimpleAdapter;
+
+import com.example.servicehub.R;
 
 import java.util.List;
 import java.util.Map;

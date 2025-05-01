@@ -1,4 +1,4 @@
-package com.example.servicehub.services;
+package com.example.servicehub.notifications;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
