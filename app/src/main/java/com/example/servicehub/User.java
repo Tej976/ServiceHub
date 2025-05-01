@@ -1,4 +1,4 @@
-package com.example.servicehub.constructors;
+package com.example.servicehub;
 
 import java.util.ArrayList;
 import java.util.List;

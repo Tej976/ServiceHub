@@ -104,7 +104,20 @@ public class BookingDetailsActivity extends AppCompatActivity {
                     String time = dataSnapshot.child("time").getValue(String.class);
                     String requirements = dataSnapshot.child("requirements").getValue(String.class);
                     String status = dataSnapshot.child("status").getValue(String.class);
+
+                    // FIX: Check for customerId first since that's the expected field name
                     customerId = dataSnapshot.child("customerId").getValue(String.class);
+
+                    // If customerId is null, check for alternative field names
+                    if (customerId == null) {
+                        // Try userId as fallback
+                        customerId = dataSnapshot.child("userId").getValue(String.class);
+
+                        // Log the search for debugging
+                        System.out.println("DEBUG: Looked for customerId first (null), then found userId: " + customerId);
+                    } else {
+                        System.out.println("DEBUG: Found customerId: " + customerId);
+                    }
 
                     // Update booking details UI
                     tvServiceType.setText(serviceType != null ? serviceType : "N/A");
@@ -133,6 +146,9 @@ public class BookingDetailsActivity extends AppCompatActivity {
                         tvCustomerName.setText("Customer info not available");
                         tvPhoneNo.setText("N/A");
                         tvAdd.setText("N/A");
+
+                        // Log the error
+                        System.out.println("ERROR: Customer ID is null in booking data");
                     }
                 } else {
                     Toast.makeText(BookingDetailsActivity.this, "Booking no longer exists", Toast.LENGTH_SHORT).show();
@@ -148,12 +164,22 @@ public class BookingDetailsActivity extends AppCompatActivity {
     }
 
     private void loadCustomerDetails(String customerId) {
+        // Log the customerId we're trying to load
+        System.out.println("DEBUG: Loading customer details for ID: " + customerId);
+
+        // Get reference to the customers node in Firebase
         DatabaseReference customerRef = FirebaseDatabase.getInstance()
                 .getReference("customers").child(customerId);
+
+        // Debug logging
+        System.out.println("DEBUG: Firebase path: " + customerRef.toString());
 
         customerRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                // Debug log whether we found data
+                System.out.println("DEBUG: Customer data exists: " + snapshot.exists());
+
                 if (snapshot.exists()) {
                     String name = snapshot.child("name").getValue(String.class);
                     String phone = snapshot.child("mobile").getValue(String.class);
@@ -162,18 +188,13 @@ public class BookingDetailsActivity extends AppCompatActivity {
                     // Log data to verify what's being retrieved
                     System.out.println("Customer Data - Name: " + name + ", Phone: " + phone + ", Address: " + address);
 
-                    // Update UI with customer details
+                    // Update UI with customer details - checking for null before setting
                     tvCustomerName.setText(name != null && !name.isEmpty() ? name : "N/A");
                     tvPhoneNo.setText(phone != null && !phone.isEmpty() ? phone : "N/A");
                     tvAdd.setText(address != null && !address.isEmpty() ? address : "N/A");
                 } else {
-                    // If customer data doesn't exist
-                    tvCustomerName.setText("Customer not found");
-                    tvPhoneNo.setText("N/A");
-                    tvAdd.setText("N/A");
-
-                    Toast.makeText(BookingDetailsActivity.this,
-                            "Customer details not found", Toast.LENGTH_SHORT).show();
+                    // Try to load customer details from auth ID as fallback
+                    loadCustomerDetailsByAuthId(customerId);
                 }
             }
 
@@ -186,8 +207,62 @@ public class BookingDetailsActivity extends AppCompatActivity {
                 tvCustomerName.setText("Error loading customer");
                 tvPhoneNo.setText("Error");
                 tvAdd.setText("Error");
+
+                // Log the error details
+                System.out.println("ERROR: Database error while loading customer: " + error.getMessage());
             }
         });
+    }
+
+    // Fallback method - Try to get customer by authUid field
+    private void loadCustomerDetailsByAuthId(String userId) {
+        System.out.println("DEBUG: Trying to load customer by authUid reference");
+
+        // Query the entire customers collection for any customer with this authUid
+        DatabaseReference allCustomersRef = FirebaseDatabase.getInstance().getReference("customers");
+
+        allCustomersRef.orderByChild("authUid").equalTo(userId).addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists() && dataSnapshot.getChildrenCount() > 0) {
+                            // Get the first matching customer
+                            for (DataSnapshot customerSnapshot : dataSnapshot.getChildren()) {
+                                String name = customerSnapshot.child("name").getValue(String.class);
+                                String phone = customerSnapshot.child("mobile").getValue(String.class);
+                                String address = customerSnapshot.child("address").getValue(String.class);
+
+                                // Log that we found the customer via this alternate method
+                                System.out.println("Found customer via authUid query: " + name);
+
+                                // Update UI with customer details
+                                tvCustomerName.setText(name != null && !name.isEmpty() ? name : "N/A");
+                                tvPhoneNo.setText(phone != null && !phone.isEmpty() ? phone : "N/A");
+                                tvAdd.setText(address != null && !address.isEmpty() ? address : "N/A");
+
+                                // Only process the first matching customer
+                                break;
+                            }
+                        } else {
+                            // If customer data doesn't exist with either method
+                            tvCustomerName.setText("Customer not found");
+                            tvPhoneNo.setText("N/A");
+                            tvAdd.setText("N/A");
+
+                            System.out.println("ERROR: Customer not found by either userId or authUid");
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        // On failure
+                        tvCustomerName.setText("Error loading customer");
+                        tvPhoneNo.setText("Error");
+                        tvAdd.setText("Error");
+
+                        System.out.println("ERROR: Failed authUid lookup: " + error.getMessage());
+                    }
+                });
     }
 
     private void updateStatusColor(String status) {
