@@ -84,10 +84,14 @@ public class AddActivity extends AppCompatActivity {
         });
 
 
-        // Set up bottom navigation
+        // Initialize bottomNavigationView
         bottomNavigationView = findViewById(R.id.bottom_navigation);
-        bottomNavigationView.setSelectedItemId(R.id.nav_bottom_add);
-        bottomNavigationView.setOnNavigationItemSelectedListener(navListener);
+
+        // Check if bottomNavigationView exists in layout
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setLabelVisibilityMode(BottomNavigationView.LABEL_VISIBILITY_LABELED);
+            bottomNavigationView.setOnNavigationItemSelectedListener(navListener);
+        }
     }
 
 

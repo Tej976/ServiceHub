@@ -77,10 +77,14 @@ public class NotificationsActivity extends AppCompatActivity {
         emptyView = findViewById(R.id.emptyNotificationsView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
 
-        // Set up bottom navigation
+        // Initialize bottomNavigationView
         bottomNavigationView = findViewById(R.id.bottom_navigation);
-        bottomNavigationView.setSelectedItemId(R.id.nav_bottom_notifications);
-        bottomNavigationView.setOnNavigationItemSelectedListener(navListener);
+
+        // Check if bottomNavigationView exists in layout
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setLabelVisibilityMode(BottomNavigationView.LABEL_VISIBILITY_LABELED);
+            bottomNavigationView.setOnNavigationItemSelectedListener(navListener);
+        }
 
         // Initialize notifications list
         notificationsList = new ArrayList<>();
