@@ -2,6 +2,7 @@ package com.example.servicehub.notifications;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -15,6 +16,10 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.servicehub.R;
 import com.example.servicehub.booking.BookingDetailsActivity;
+import com.example.servicehub.MainActivity;
+import com.example.servicehub.AddActivity;
+import com.example.servicehub.booking.BookingActivity; // Change this to your actual bookings activity
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -43,6 +48,7 @@ public class NotificationsActivity extends AppCompatActivity {
     private SimpleAdapter adapter;
     private String userId;
     private String userType;
+    private BottomNavigationView bottomNavigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +76,11 @@ public class NotificationsActivity extends AppCompatActivity {
         notificationsListView = findViewById(R.id.listViewNotifications);
         emptyView = findViewById(R.id.emptyNotificationsView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+
+        // Set up bottom navigation
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_bottom_notifications);
+        bottomNavigationView.setOnNavigationItemSelectedListener(navListener);
 
         // Initialize notifications list
         notificationsList = new ArrayList<>();
@@ -122,6 +133,40 @@ public class NotificationsActivity extends AppCompatActivity {
             }
         });
     }
+
+    private BottomNavigationView.OnNavigationItemSelectedListener navListener =
+            new BottomNavigationView.OnNavigationItemSelectedListener() {
+                @Override
+                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                    int id = item.getItemId();
+                    if (id == R.id.nav_bottom_home) {
+                        Intent intent = new Intent(NotificationsActivity.this, MainActivity.class);
+                        intent.putExtra("userId", userId);
+                        intent.putExtra("userType", userType);
+                        startActivity(intent);
+                        return true;
+                    }
+                    else if (id == R.id.nav_bottom_add) {
+                        Intent intent = new Intent(NotificationsActivity.this, AddActivity.class);
+                        intent.putExtra("userId", userId);
+                        intent.putExtra("userType", userType);
+                        startActivity(intent);
+                        return true;
+                    }
+                    else if (id == R.id.nav_bottom_bookings) {
+                        Intent intent = new Intent(NotificationsActivity.this, BookingActivity.class);
+                        intent.putExtra("userId", userId);
+                        intent.putExtra("userType", userType);
+                        startActivity(intent);
+                        return true;
+                    }
+                    else if (id == R.id.nav_bottom_notifications) {
+                        // Already on notifications screen, do nothing but keep it selected
+                        return true;
+                    }
+                    return false;
+                }
+            };
 
     private void loadNotifications() {
         if (userId == null) {

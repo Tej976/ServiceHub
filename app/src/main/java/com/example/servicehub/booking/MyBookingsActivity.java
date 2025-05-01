@@ -2,6 +2,7 @@ package com.example.servicehub.booking;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -14,6 +15,10 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.servicehub.R;
+import com.example.servicehub.MainActivity;
+import com.example.servicehub.AddActivity;
+import com.example.servicehub.notifications.NotificationsActivity;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -41,6 +46,7 @@ public class MyBookingsActivity extends AppCompatActivity {
     private String userId;
     private String userType;
     private TabLayout tabLayout;
+    private BottomNavigationView bottomNavigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +72,11 @@ public class MyBookingsActivity extends AppCompatActivity {
         bookingsListView = findViewById(R.id.listViewBookings);
         emptyView = findViewById(R.id.emptyBookingsView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+
+        // Set up bottom navigation
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_bottom_bookings);
+        bottomNavigationView.setOnNavigationItemSelectedListener(navListener);
 
         // Initialize TabLayout
         tabLayout = findViewById(R.id.tabLayout);
@@ -144,6 +155,40 @@ public class MyBookingsActivity extends AppCompatActivity {
             }
         });
     }
+
+    private BottomNavigationView.OnNavigationItemSelectedListener navListener =
+            new BottomNavigationView.OnNavigationItemSelectedListener() {
+                @Override
+                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                    int id = item.getItemId();
+                    if (id == R.id.nav_bottom_home) {
+                        Intent intent = new Intent(MyBookingsActivity.this, MainActivity.class);
+                        intent.putExtra("userId", userId);
+                        intent.putExtra("userType", userType);
+                        startActivity(intent);
+                        return true;
+                    }
+                    else if (id == R.id.nav_bottom_add) {
+                        Intent intent = new Intent(MyBookingsActivity.this, AddActivity.class);
+                        intent.putExtra("userId", userId);
+                        intent.putExtra("userType", userType);
+                        startActivity(intent);
+                        return true;
+                    }
+                    else if (id == R.id.nav_bottom_bookings) {
+                        // Already on bookings screen, do nothing but keep it selected
+                        return true;
+                    }
+                    else if (id == R.id.nav_bottom_notifications) {
+                        Intent intent = new Intent(MyBookingsActivity.this, NotificationsActivity.class);
+                        intent.putExtra("userId", userId);
+                        intent.putExtra("userType", userType);
+                        startActivity(intent);
+                        return true;
+                    }
+                    return false;
+                }
+            };
 
     private void filterBookingsByStatus(int tabPosition) {
         filteredBookingsList.clear();

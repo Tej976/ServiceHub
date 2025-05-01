@@ -31,8 +31,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private RecyclerView servicesRecyclerView;
     private ServiceAdapter serviceAdapter;
     private List<ServiceItem> serviceList;
+    private BottomNavigationView bottomNav;
 
     private FirebaseAuth mAuth;
     private static final String PREF_NAME = "AppPrefs";
@@ -96,8 +95,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
         // Set up bottom navigation
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+        bottomNav = findViewById(R.id.bottom_navigation);
+
+        // Fix 1: Always show labels by setting label visibility mode
+        bottomNav.setLabelVisibilityMode(BottomNavigationView.LABEL_VISIBILITY_LABELED);
+
         bottomNav.setOnNavigationItemSelectedListener(navListener);
+
+        // Fix 2: Set the selected item to home by default
+        bottomNav.setSelectedItemId(R.id.nav_bottom_home);
 
         // Set up Navigation Drawer
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -128,7 +134,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         TextView navUsername = headerView.findViewById(R.id.nav_header_name);
         TextView navUserType = headerView.findViewById(R.id.nav_header_userType);
 
-
         // In your MainActivity or Application class
         Intent serviceIntent = new Intent(this, com.example.servicehub.notifications.NotificationService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -136,7 +141,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else {
             startService(serviceIntent);
         }
-
     }
 
     // Create list of service items
@@ -158,49 +162,50 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Add more services as needed
     }
 
-
-
-    // Update the bottom navigation listener in MainActivity.java
-
     private BottomNavigationView.OnNavigationItemSelectedListener navListener =
-            new BottomNavigationView.OnNavigationItemSelectedListener() {
-                @Override
-                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                    Fragment selectedFragment = null;
-
-                    int id = item.getItemId();
-                    if (id == R.id.nav_bottom_home) {
-                        return true;
-                    }
-                    else if (id == R.id.nav_bottom_add) {
-                        Intent intent = new Intent(MainActivity.this, AddActivity.class);
-                        startActivity(intent);
-                        return true;
-                    }
-                    else if (id == R.id.nav_bottom_bookings) {
-                        Intent intent = new Intent(MainActivity.this, MyBookingsActivity.class);
-                        intent.putExtra("userId", userId);
-                        intent.putExtra("userType", userType);
-                        startActivity(intent);
-                        return true;
-                    }
-                    else if (id == R.id.nav_bottom_notifications) {
-                        Intent intent = new Intent(MainActivity.this, NotificationsActivity.class);
-                        intent.putExtra("userId", userId);
-                        intent.putExtra("userType", userType);
-                        startActivity(intent);
-                        return true;
-                    }
-
-                    if (selectedFragment != null) {
-                        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                                selectedFragment).commit();
-                    }
+        new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int id = item.getItemId();
+                if (id == R.id.nav_bottom_home) {
+                   // Already on home screen, do nothing but keep it selected
+                   return true;
+                }
+                else if (id == R.id.nav_bottom_add) {
+                    Intent intent = new Intent(MainActivity.this, AddActivity.class);
+                    intent.putExtra("userId", userId);
+                    intent.putExtra("userType", userType);
+                    startActivity(intent);
                     return true;
                 }
-            };
+                else if (id == R.id.nav_bottom_bookings) {
+                    Intent intent = new Intent(MainActivity.this, MyBookingsActivity.class);
+                    intent.putExtra("userId", userId);
+                    intent.putExtra("userType", userType);
+                    startActivity(intent);
+                    return true;
+                }
+                else if (id == R.id.nav_bottom_notifications) {
+                    Intent intent = new Intent(MainActivity.this, NotificationsActivity.class);
+                    intent.putExtra("userId", userId);
+                    intent.putExtra("userType", userType);
+                    startActivity(intent);
+                    return true;
+                }
+                return false;
+            }
+    };
 
-    /* Check if this is the first run after installation. If it is, clear any system-stored back stack information       */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Fix 2: Always reset bottom navigation to home when returning to MainActivity
+        if (bottomNav != null) {
+            bottomNav.setSelectedItemId(R.id.nav_bottom_home);
+        }
+    }
+
+    /* Check if this is the first run after installation. If it is, clear any system-stored back stack information */
 
     private void checkIfFirstRun() {
         SharedPreferences preferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);

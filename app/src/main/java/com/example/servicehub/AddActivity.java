@@ -3,15 +3,21 @@ package com.example.servicehub;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.servicehub.booking.MyBookingsActivity;
+import com.example.servicehub.notifications.NotificationsActivity;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -32,12 +38,19 @@ public class AddActivity extends AppCompatActivity {
     private String userType;
     private String providerEmail;
     private String providerName;
+    private TabLayout tabLayout;
+    private BottomNavigationView bottomNavigationView;
 
     // onCreate method is called when the activity is created
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);                                    // Call the superclass's onCreate method
         setContentView(R.layout.activity_add);                                 // Set the content view to the activity_main layout
+
+        // Set up toolbar
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("Add New Service");
 
         serviceNameInput = findViewById(R.id.serviceNameInput);
         serviceDescription = findViewById(R.id.serviceDescription);
@@ -69,7 +82,48 @@ public class AddActivity extends AppCompatActivity {
         addCardButton.setOnClickListener(v -> {
             sendEmail(serviceNameInput, serviceDescription);
         });
+
+
+        // Set up bottom navigation
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_bottom_add);
+        bottomNavigationView.setOnNavigationItemSelectedListener(navListener);
     }
+
+
+    private BottomNavigationView.OnNavigationItemSelectedListener navListener =
+            new BottomNavigationView.OnNavigationItemSelectedListener() {
+                @Override
+                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                    int id = item.getItemId();
+                    if (id == R.id.nav_bottom_home) {
+                        Intent intent = new Intent(AddActivity.this, MainActivity.class);
+                        intent.putExtra("userId", userId);
+                        intent.putExtra("userType", userType);
+                        startActivity(intent);
+                        return true;
+                    }
+                    else if (id == R.id.nav_bottom_bookings) {
+                        Intent intent = new Intent(AddActivity.this, MyBookingsActivity.class);
+                        intent.putExtra("userId", userId);
+                        intent.putExtra("userType", userType);
+                        startActivity(intent);
+                        return true;
+                    }
+                    else if (id == R.id.nav_bottom_add) {
+                        // Already on Add screen, do nothing but keep it selected
+                        return true;
+                    }
+                    else if (id == R.id.nav_bottom_notifications) {
+                        Intent intent = new Intent(AddActivity.this, NotificationsActivity.class);
+                        intent.putExtra("userId", userId);
+                        intent.putExtra("userType", userType);
+                        startActivity(intent);
+                        return true;
+                    }
+                    return false;
+                }
+            };
 
     // Fetch service provider information from Firebase
     private void fetchProviderInfo() {
