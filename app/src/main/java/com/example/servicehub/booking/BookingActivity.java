@@ -1,7 +1,9 @@
 package com.example.servicehub.booking;
 
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -12,6 +14,8 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -22,11 +26,14 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -114,6 +121,9 @@ public class BookingActivity extends AppCompatActivity {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
                 selectedDate = dateFormat.format(calendar.getTime());
                 btnSelectDate.setText("Date: " + selectedDate);
+
+                // After a date is selected, show available slots
+                loadAvailableTimeSlots(selectedDate);
             }
         },
                 calendar.get(Calendar.YEAR),
@@ -126,23 +136,128 @@ public class BookingActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    private void showTimePicker() {
-        TimePickerDialog timePickerDialog = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
-            @Override
-            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                calendar.set(Calendar.MINUTE, minute);
 
-                SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a", Locale.getDefault());
-                selectedTime = timeFormat.format(calendar.getTime());
-                btnSelectTime.setText("Time: " + selectedTime);
+    private void loadAvailableTimeSlots(final String date) {
+        // Show loading state
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Loading available time slots...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        // Create a list of standard time slots
+        final List<String> allTimeSlots = new ArrayList<>();
+        Calendar slotCalendar = Calendar.getInstance();
+        slotCalendar.set(Calendar.HOUR_OF_DAY, 9); // Start at 9 AM
+        slotCalendar.set(Calendar.MINUTE, 0);
+
+        SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+
+        // Generate slots from 9 AM to 5 PM in 30-minute increments
+        for (int i = 0; i < 16; i++) { // 8 hours * 2 slots per hour = 16 slots
+            allTimeSlots.add(timeFormat.format(slotCalendar.getTime()));
+            slotCalendar.add(Calendar.MINUTE, 30);
+        }
+
+        // Query bookings for this provider on selected date
+        DatabaseReference bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
+        Query query = bookingsRef.orderByChild("providerId").equalTo(providerId);
+
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                // Create a list to track booked slots
+                List<String> bookedSlots = new ArrayList<>();
+
+                // Find all booked slots for this date
+                for (DataSnapshot bookingSnapshot : dataSnapshot.getChildren()) {
+                    String bookingDate = bookingSnapshot.child("date").getValue(String.class);
+                    String bookingTime = bookingSnapshot.child("time").getValue(String.class);
+                    String bookingStatus = bookingSnapshot.child("status").getValue(String.class);
+
+                    // Only consider pending or confirmed bookings
+                    if ((bookingStatus.equals("pending") || bookingStatus.equals("confirmed")) &&
+                            bookingDate.equals(date)) {
+                        bookedSlots.add(bookingTime);
+                    }
+                }
+
+                progressDialog.dismiss();
+
+                // Show dialog with available time slots
+                showAvailableSlotsDialog(allTimeSlots, bookedSlots);
             }
-        },
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                progressDialog.dismiss();
+                Toast.makeText(BookingActivity.this,
+                        "Failed to load available slots: " + databaseError.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
+
+
+    private void showAvailableSlotsDialog(List<String> allSlots, final List<String> bookedSlots) {
+        // Create a list of available slots by removing booked ones
+        final List<String> availableSlots = new ArrayList<>(allSlots);
+        availableSlots.removeAll(bookedSlots);
+
+        if (availableSlots.isEmpty()) {
+            Toast.makeText(this, "No available time slots for this date. Please select another date.",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // Create dialog with available slots
+        CharSequence[] slots = availableSlots.toArray(new CharSequence[0]);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Select Available Time Slot")
+                .setItems(slots, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        selectedTime = availableSlots.get(which);
+                        btnSelectTime.setText("Time: " + selectedTime);
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+
+
+
+
+    private void showTimePicker() {
+        // Create a custom TimePickerDialog that enforces 30-minute intervals
+        TimePickerDialog timePickerDialog = new TimePickerDialog(this,
+                new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                        // Round to nearest 30-minute slot (0 or 30)
+                        int roundedMinute = (minute < 30) ? 0 : 30;
+
+                        calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                        calendar.set(Calendar.MINUTE, roundedMinute);
+
+                        SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+                        selectedTime = timeFormat.format(calendar.getTime());
+                        btnSelectTime.setText("Time: " + selectedTime);
+                    }
+                },
                 calendar.get(Calendar.HOUR_OF_DAY),
                 calendar.get(Calendar.MINUTE), false
         );
+
+        timePickerDialog.setTitle("Select Appointment Time");
         timePickerDialog.show();
     }
+
+
+
 
     private void confirmBooking() {
         String requirements = etRequirements.getText().toString().trim();
@@ -162,10 +277,68 @@ public class BookingActivity extends AppCompatActivity {
         String userId = "guest";
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        } else {
+            Toast.makeText(this, "You must be logged in to book a service", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        // First fetch customer details to include in booking
-        fetchCustomerDetails(userId, requirements);
+        // Check if slot is already booked before proceeding
+        checkIfSlotIsAvailable(userId, providerId, selectedDate, selectedTime, requirements);
+    }
+
+    private void checkIfSlotIsAvailable(final String userId, final String providerId,
+                                        final String date, final String time, final String requirements) {
+
+        // Show loading indicator
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Checking slot availability...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        // Query all bookings for this provider on the selected date and time
+        DatabaseReference bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
+        Query query = bookingsRef.orderByChild("providerId").equalTo(providerId);
+
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                boolean isSlotBooked = false;
+
+                // Check each booking for the provider
+                for (DataSnapshot bookingSnapshot : dataSnapshot.getChildren()) {
+                    String bookingDate = bookingSnapshot.child("date").getValue(String.class);
+                    String bookingTime = bookingSnapshot.child("time").getValue(String.class);
+                    String bookingStatus = bookingSnapshot.child("status").getValue(String.class);
+
+                    // Only consider pending or confirmed bookings
+                    if ((bookingStatus.equals("pending") || bookingStatus.equals("confirmed")) &&
+                            bookingDate.equals(date) && bookingTime.equals(time)) {
+                        isSlotBooked = true;
+                        break;
+                    }
+                }
+
+                progressDialog.dismiss();
+
+                if (isSlotBooked) {
+                    // Show error - slot already booked
+                    Toast.makeText(BookingActivity.this,
+                            "This time slot is already booked. Please select a different time.",
+                            Toast.LENGTH_LONG).show();
+                } else {
+                    // Slot is available, proceed with booking
+                    fetchCustomerDetails(userId, requirements);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                progressDialog.dismiss();
+                Toast.makeText(BookingActivity.this,
+                        "Failed to check slot availability: " + databaseError.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void fetchCustomerDetails(final String userId, final String requirements) {
@@ -202,6 +375,9 @@ public class BookingActivity extends AppCompatActivity {
             }
         });
     }
+
+
+
 
     private void createBooking(String userId, String requirements, String customerName, String customerPhone, String customerAddress) {
         // Create booking object
