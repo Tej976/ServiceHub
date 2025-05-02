@@ -15,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -46,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ServiceAdapter serviceAdapter;
     private List<ServiceItem> serviceList;
     private BottomNavigationView bottomNav;
+    private BottomNavigationHandler navigationHandler;
 
     private FirebaseAuth mAuth;
     private static final String PREF_NAME = "AppPrefs";
@@ -96,15 +96,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // Set up bottom navigation
         bottomNav = findViewById(R.id.bottom_navigation);
-        bottomNav.setLabelVisibilityMode(BottomNavigationView.LABEL_VISIBILITY_LABELED);           // Always show labels by setting label visibility mode
-        bottomNav.setOnNavigationItemSelectedListener(navListener);
-        bottomNav.setSelectedItemId(R.id.nav_bottom_home);                     // Set the selected item to home by default
-
-        // Set up Navigation Drawer
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawerLayout.addDrawerListener(toggle);
-        toggle.syncState();
-        navigationView.setNavigationItemSelectedListener(this);
 
         // Get userId and userType from intent
         userId = getIntent().getStringExtra("userId");
@@ -120,6 +111,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             redirectToLogin();
             return;
         }
+
+        // Initialize the BottomNavigationHandler
+        navigationHandler = new BottomNavigationHandler(this, bottomNav, userId, userType);
+        navigationHandler.setSelectedItem(R.id.nav_bottom_home);
+
+        // Set up Navigation Drawer
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+        navigationView.setNavigationItemSelectedListener(this);
 
         // Load user data based on user type
         loadUserData();
@@ -157,46 +158,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Add more services as needed
     }
 
-    private BottomNavigationView.OnNavigationItemSelectedListener navListener =
-        new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int id = item.getItemId();
-                if (id == R.id.nav_bottom_home) {
-                   // Already on home screen, do nothing but keep it selected
-                   return true;
-                }
-                else if (id == R.id.nav_bottom_add) {
-                    Intent intent = new Intent(MainActivity.this, AddActivity.class);
-                    intent.putExtra("userId", userId);
-                    intent.putExtra("userType", userType);
-                    startActivity(intent);
-                    return true;
-                }
-                else if (id == R.id.nav_bottom_bookings) {
-                    Intent intent = new Intent(MainActivity.this, MyBookingsActivity.class);
-                    intent.putExtra("userId", userId);
-                    intent.putExtra("userType", userType);
-                    startActivity(intent);
-                    return true;
-                }
-                else if (id == R.id.nav_bottom_notifications) {
-                    Intent intent = new Intent(MainActivity.this, NotificationsActivity.class);
-                    intent.putExtra("userId", userId);
-                    intent.putExtra("userType", userType);
-                    startActivity(intent);
-                    return true;
-                }
-                return false;
-            }
-    };
-
     @Override
     protected void onResume() {
         super.onResume();
         // Fix 2: Always reset bottom navigation to home when returning to MainActivity
-        if (bottomNav != null) {
-            bottomNav.setSelectedItemId(R.id.nav_bottom_home);
+        if (navigationHandler != null) {
+            navigationHandler.setSelectedItem(R.id.nav_bottom_home);
         }
     }
 

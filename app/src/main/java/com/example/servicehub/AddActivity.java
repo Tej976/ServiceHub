@@ -1,9 +1,7 @@
 package com.example.servicehub;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -11,11 +9,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.servicehub.booking.MyBookingsActivity;
-import com.example.servicehub.notifications.NotificationsActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -40,6 +35,7 @@ public class AddActivity extends AppCompatActivity {
     private String providerName;
     private TabLayout tabLayout;
     private BottomNavigationView bottomNavigationView;
+    private BottomNavigationHandler navigationHandler;
 
     // onCreate method is called when the activity is created
     @Override
@@ -83,17 +79,14 @@ public class AddActivity extends AppCompatActivity {
             sendEmail(serviceNameInput, serviceDescription);
         });
 
-
         // Initialize bottomNavigationView
         bottomNavigationView = findViewById(R.id.bottom_navigation);
 
         // Check if bottomNavigationView exists in layout
         if (bottomNavigationView != null) {
-            bottomNavigationView.setLabelVisibilityMode(BottomNavigationView.LABEL_VISIBILITY_LABELED);
-            bottomNavigationView.setOnNavigationItemSelectedListener(navListener);
-
-            // FIX: Set the selected item to the add navigation item when this activity starts
-            bottomNavigationView.setSelectedItemId(R.id.nav_bottom_add);
+            // Initialize the BottomNavigationHandler
+            navigationHandler = new BottomNavigationHandler(this, bottomNavigationView, userId, userType);
+            navigationHandler.setSelectedItem(R.id.nav_bottom_add);
         }
     }
 
@@ -101,44 +94,10 @@ public class AddActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         // FIX: Ensure the add tab stays selected when returning to this activity
-        if (bottomNavigationView != null) {
-            bottomNavigationView.setSelectedItemId(R.id.nav_bottom_add);
+        if (navigationHandler != null) {
+            navigationHandler.setSelectedItem(R.id.nav_bottom_add);
         }
     }
-
-    private BottomNavigationView.OnNavigationItemSelectedListener navListener =
-            new BottomNavigationView.OnNavigationItemSelectedListener() {
-                @Override
-                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                    int id = item.getItemId();
-                    if (id == R.id.nav_bottom_home) {
-                        Intent intent = new Intent(AddActivity.this, MainActivity.class);
-                        intent.putExtra("userId", userId);
-                        intent.putExtra("userType", userType);
-                        startActivity(intent);
-                        return true;
-                    }
-                    else if (id == R.id.nav_bottom_bookings) {
-                        Intent intent = new Intent(AddActivity.this, MyBookingsActivity.class);
-                        intent.putExtra("userId", userId);
-                        intent.putExtra("userType", userType);
-                        startActivity(intent);
-                        return true;
-                    }
-                    else if (id == R.id.nav_bottom_add) {
-                        // Already on Add screen, do nothing but keep it selected
-                        return true;
-                    }
-                    else if (id == R.id.nav_bottom_notifications) {
-                        Intent intent = new Intent(AddActivity.this, NotificationsActivity.class);
-                        intent.putExtra("userId", userId);
-                        intent.putExtra("userType", userType);
-                        startActivity(intent);
-                        return true;
-                    }
-                    return false;
-                }
-            };
 
     // Fetch service provider information from Firebase
     private void fetchProviderInfo() {

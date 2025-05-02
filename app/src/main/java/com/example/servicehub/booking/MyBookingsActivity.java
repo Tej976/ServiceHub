@@ -2,7 +2,6 @@ package com.example.servicehub.booking;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -15,9 +14,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.servicehub.R;
-import com.example.servicehub.MainActivity;
-import com.example.servicehub.AddActivity;
-import com.example.servicehub.notifications.NotificationsActivity;
+import com.example.servicehub.BottomNavigationHandler;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -47,6 +44,7 @@ public class MyBookingsActivity extends AppCompatActivity {
     private String userType;
     private TabLayout tabLayout;
     private BottomNavigationView bottomNavigationView;
+    private BottomNavigationHandler navigationHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,14 +74,17 @@ public class MyBookingsActivity extends AppCompatActivity {
         // Initialize bottomNavigationView
         bottomNavigationView = findViewById(R.id.bottom_navigation);
 
-        // Check if bottomNavigationView exists in layout
+        // Setup bottom navigation handler
         if (bottomNavigationView != null) {
-            bottomNavigationView.setLabelVisibilityMode(BottomNavigationView.LABEL_VISIBILITY_LABELED);
-            bottomNavigationView.setOnNavigationItemSelectedListener(navListener);
+            navigationHandler = new BottomNavigationHandler(
+                    this,
+                    bottomNavigationView,
+                    userId,
+                    userType
+            );
+            // Set the selected item to bookings when this activity starts
+            navigationHandler.setSelectedItem(R.id.nav_bottom_bookings);
         }
-
-        // FIX: Set the selected item to the add navigation item when this activity starts
-        bottomNavigationView.setSelectedItemId(R.id.nav_bottom_bookings);
 
         // Initialize TabLayout
         tabLayout = findViewById(R.id.tabLayout);
@@ -163,50 +164,14 @@ public class MyBookingsActivity extends AppCompatActivity {
         });
     }
 
-
     @Override
     protected void onResume() {
         super.onResume();
-        // FIX: Ensure the add tab stays selected when returning to this activity
-        if (bottomNavigationView != null) {
-            bottomNavigationView.setSelectedItemId(R.id.nav_bottom_bookings);
+        // Ensure the bookings tab stays selected when returning to this activity
+        if (navigationHandler != null) {
+            navigationHandler.setSelectedItem(R.id.nav_bottom_bookings);
         }
     }
-
-
-    private BottomNavigationView.OnNavigationItemSelectedListener navListener =
-            new BottomNavigationView.OnNavigationItemSelectedListener() {
-                @Override
-                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                    int id = item.getItemId();
-                    if (id == R.id.nav_bottom_home) {
-                        Intent intent = new Intent(MyBookingsActivity.this, MainActivity.class);
-                        intent.putExtra("userId", userId);
-                        intent.putExtra("userType", userType);
-                        startActivity(intent);
-                        return true;
-                    }
-                    else if (id == R.id.nav_bottom_add) {
-                        Intent intent = new Intent(MyBookingsActivity.this, AddActivity.class);
-                        intent.putExtra("userId", userId);
-                        intent.putExtra("userType", userType);
-                        startActivity(intent);
-                        return true;
-                    }
-                    else if (id == R.id.nav_bottom_bookings) {
-                        // Already on bookings screen, do nothing but keep it selected
-                        return true;
-                    }
-                    else if (id == R.id.nav_bottom_notifications) {
-                        Intent intent = new Intent(MyBookingsActivity.this, NotificationsActivity.class);
-                        intent.putExtra("userId", userId);
-                        intent.putExtra("userType", userType);
-                        startActivity(intent);
-                        return true;
-                    }
-                    return false;
-                }
-            };
 
     private void filterBookingsByStatus(int tabPosition) {
         filteredBookingsList.clear();
