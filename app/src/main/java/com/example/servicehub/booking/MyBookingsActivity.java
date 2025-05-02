@@ -46,6 +46,10 @@ public class MyBookingsActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigationView;
     private BottomNavigationHandler navigationHandler;
 
+    // Add a new tab for service providers to switch between providing and receiving
+    private TabLayout providerRoleTabLayout;
+    private boolean isProvidingMode = true; // Default to showing services to provide
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +75,12 @@ public class MyBookingsActivity extends AppCompatActivity {
         emptyView = findViewById(R.id.emptyBookingsView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
 
+        // Initialize provider role tab layout
+        providerRoleTabLayout = findViewById(R.id.providerRoleTabLayout);
+
+        // First check if this user is a service provider regardless of their current role
+        checkIfUserIsServiceProvider(userId);
+
         // Initialize bottomNavigationView
         bottomNavigationView = findViewById(R.id.bottom_navigation);
 
@@ -86,7 +96,7 @@ public class MyBookingsActivity extends AppCompatActivity {
             navigationHandler.setSelectedItem(R.id.nav_bottom_bookings);
         }
 
-        // Initialize TabLayout
+        // Initialize TabLayout for booking status
         tabLayout = findViewById(R.id.tabLayout);
         tabLayout.addTab(tabLayout.newTab().setText("All"));
         tabLayout.addTab(tabLayout.newTab().setText("Pending"));
@@ -118,14 +128,26 @@ public class MyBookingsActivity extends AppCompatActivity {
                 Map<String, String> booking = filteredBookingsList.get(position);
                 String bookingId = booking.get("bookingId");
                 String providerId = booking.get("providerId");
+                String bookingMode = booking.get("bookingMode");
 
-                // Start different activity based on user type
+                // Start different activity based on user type and booking mode
                 if ("service_provider".equals(userType)) {
-                    Intent intent = new Intent(MyBookingsActivity.this, BookingDetailsActivity.class);
-                    intent.putExtra("bookingId", bookingId);
-                    intent.putExtra("providerId", providerId);
-                    startActivity(intent);
-                } else {
+                    // For service providers, check if they're providing or receiving this service
+                    if ("providing".equals(bookingMode)) {
+                        // Service provider viewing a booking they need to provide
+                        Intent intent = new Intent(MyBookingsActivity.this, BookingDetailsActivity.class);
+                        intent.putExtra("bookingId", bookingId);
+                        intent.putExtra("providerId", providerId);
+                        startActivity(intent);
+                    }
+                    else {
+                        // Service provider viewing a booking they've made as a customer
+                        Intent intent = new Intent(MyBookingsActivity.this, CustomerBookingDetailsActivity.class);
+                        intent.putExtra("bookingId", bookingId);
+                        startActivity(intent);
+                    }
+                }
+                else {
                     // For customers, show booking details without accept/reject buttons
                     Intent intent = new Intent(MyBookingsActivity.this, CustomerBookingDetailsActivity.class);
                     intent.putExtra("bookingId", bookingId);
@@ -134,7 +156,7 @@ public class MyBookingsActivity extends AppCompatActivity {
             }
         });
 
-        // Set up tab selection listener
+        // Set up tab selection listener for status tabs
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -164,6 +186,66 @@ public class MyBookingsActivity extends AppCompatActivity {
         });
     }
 
+    // New method to check if the user is a service provider regardless of their current role
+    private void checkIfUserIsServiceProvider(String userId) {
+        DatabaseReference serviceProvidersRef = FirebaseDatabase.getInstance()
+                .getReference("service_providers");
+
+        serviceProvidersRef.orderByChild("authUid").equalTo(userId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        boolean isServiceProvider = dataSnapshot.exists();
+
+                        if (isServiceProvider) {
+                            // This user is a service provider, show the provider role tab layout
+                            setupProviderRoleTabs();
+                        } else {
+                            // This user is only a customer, hide the provider role tab layout
+                            providerRoleTabLayout.setVisibility(View.GONE);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        // On error, default to hiding the provider role tabs
+                        providerRoleTabLayout.setVisibility(View.GONE);
+                    }
+                });
+    }
+
+    // Set up the provider role tabs
+    private void setupProviderRoleTabs() {
+        // Show the provider role tab layout
+        providerRoleTabLayout.setVisibility(View.VISIBLE);
+
+        // Clear existing tabs to avoid duplication if this method is called multiple times
+        providerRoleTabLayout.removeAllTabs();
+
+        // Add tabs
+        providerRoleTabLayout.addTab(providerRoleTabLayout.newTab().setText("Services to Provide"));
+        providerRoleTabLayout.addTab(providerRoleTabLayout.newTab().setText("Services I Booked"));
+
+        // Set up tab selection listener for provider role tabs
+        providerRoleTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                isProvidingMode = tab.getPosition() == 0;
+                loadBookings(); // Reload bookings with the new mode
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+                // Do nothing
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+                // Do nothing
+            }
+        });
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -171,6 +253,8 @@ public class MyBookingsActivity extends AppCompatActivity {
         if (navigationHandler != null) {
             navigationHandler.setSelectedItem(R.id.nav_bottom_bookings);
         }
+        // Refresh bookings when returning to the activity
+        loadBookings();
     }
 
     private void filterBookingsByStatus(int tabPosition) {
@@ -179,9 +263,17 @@ public class MyBookingsActivity extends AppCompatActivity {
         if (tabPosition == 0) {
             // Show all bookings
             filteredBookingsList.addAll(bookingsList);
-            emptyView.setText(bookingsList.isEmpty() ?
-                    ("service_provider".equals(userType) ? "No service requests yet" : "You haven't booked any services yet") :
-                    "No bookings found");
+
+            // Update empty view message based on user type and mode
+            if ("service_provider".equals(userType)) {
+                if (isProvidingMode) {
+                    emptyView.setText(bookingsList.isEmpty() ? "No service requests from customers yet" : "No bookings found");
+                } else {
+                    emptyView.setText(bookingsList.isEmpty() ? "You haven't booked any services yet" : "No bookings found");
+                }
+            } else {
+                emptyView.setText(bookingsList.isEmpty() ? "You haven't booked any services yet" : "No bookings found");
+            }
         } else {
             // Filter bookings by status
             String status = "";
@@ -222,11 +314,21 @@ public class MyBookingsActivity extends AppCompatActivity {
                 }
             }
 
-            // Update empty view message for Cancelled tab to include both statuses
-            if (isCancelledTab) {
-                emptyView.setText("No cancelled or rejected bookings");
+            // Update empty view message
+            if ("service_provider".equals(userType)) {
+                String rolePrefix = isProvidingMode ? "to provide" : "booked";
+
+                if (isCancelledTab) {
+                    emptyView.setText("No cancelled or rejected bookings " + rolePrefix);
+                } else {
+                    emptyView.setText("No " + status + " bookings " + rolePrefix);
+                }
             } else {
-                emptyView.setText("No " + status + " bookings");
+                if (isCancelledTab) {
+                    emptyView.setText("No cancelled or rejected bookings");
+                } else {
+                    emptyView.setText("No " + status + " bookings");
+                }
             }
         }
 
@@ -241,81 +343,153 @@ public class MyBookingsActivity extends AppCompatActivity {
             return;
         }
 
+        bookingsList.clear();
+
+        // Check if provider tabs are visible and use the current mode
+        if (providerRoleTabLayout.getVisibility() == View.VISIBLE) {
+            if (isProvidingMode) {
+                // Load bookings where this user is the provider
+                loadProviderBookings();
+            } else {
+                // Load bookings where this user is the customer
+                loadCustomerBookings();
+            }
+        } else {
+            // For regular customers, only load customer bookings
+            loadCustomerBookings();
+        }
+    }
+
+    private void loadProviderBookings() {
         DatabaseReference bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
 
-        // Query bookings based on user type
-        Query query;
-        if ("service_provider".equals(userType)) {
-            query = bookingsRef.orderByChild("providerId").equalTo(userId);
-        } else {
-            query = bookingsRef.orderByChild("customerId").equalTo(userId);
-        }
+        // Find the provider ID by auth UID
+        DatabaseReference serviceProvidersRef = FirebaseDatabase.getInstance()
+                .getReference("service_providers");
+
+        serviceProvidersRef.orderByChild("authUid").equalTo(userId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            for (DataSnapshot providerSnapshot : dataSnapshot.getChildren()) {
+                                String providerId = providerSnapshot.getKey();
+
+                                // Now query for bookings with this provider ID
+                                Query query = bookingsRef.orderByChild("providerId").equalTo(providerId);
+
+                                query.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        for (DataSnapshot bookingSnapshot : dataSnapshot.getChildren()) {
+                                            processBookingSnapshot(bookingSnapshot, "providing");
+                                        }
+
+                                        // Sort and display bookings
+                                        sortAndDisplayBookings();
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                                        handleDatabaseError(databaseError);
+                                    }
+                                });
+                            }
+                        } else {
+                            // No provider record found, show empty list
+                            sortAndDisplayBookings();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        handleDatabaseError(databaseError);
+                    }
+                });
+    }
+
+    private void loadCustomerBookings() {
+        DatabaseReference bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
+        Query query = bookingsRef.orderByChild("customerId").equalTo(userId);
 
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                bookingsList.clear();
-
                 for (DataSnapshot bookingSnapshot : dataSnapshot.getChildren()) {
-                    String bookingId = bookingSnapshot.getKey();
-                    String providerName = bookingSnapshot.child("providerName").getValue(String.class);
-                    String serviceType = bookingSnapshot.child("serviceType").getValue(String.class);
-                    String date = bookingSnapshot.child("date").getValue(String.class);
-                    String time = bookingSnapshot.child("time").getValue(String.class);
-                    String status = bookingSnapshot.child("status").getValue(String.class);
-                    String providerId = bookingSnapshot.child("providerId").getValue(String.class);
-
-                    // Get customer details
-                    String customerId = bookingSnapshot.child("customerId").getValue(String.class);
-                    String customerName = bookingSnapshot.child("customerName").getValue(String.class);
-
-                    // If customerName is null or empty, fetch from database
-                    if ((customerName == null || customerName.isEmpty()) && customerId != null) {
-                        fetchCustomerDetails(bookingId, customerId);
-                    }
-
-                    if (serviceType != null && date != null && time != null && status != null) {
-                        // Create booking map
-                        Map<String, String> booking = new HashMap<>();
-                        booking.put("bookingId", bookingId);
-                        booking.put("serviceProvider", providerName != null ? providerName : "");
-                        booking.put("serviceType", serviceType);
-                        booking.put("dateTime", date + " at " + time);
-                        booking.put("status", status);
-                        booking.put("providerId", providerId != null ? providerId : "");
-                        booking.put("customerId", customerId != null ? customerId : "");
-                        booking.put("customerName", customerName != null ? customerName : "");
-
-                        bookingsList.add(booking);
-                    }
+                    processBookingSnapshot(bookingSnapshot, "receiving");
                 }
 
-                // Sort bookings by date (most recent first)
-                Collections.sort(bookingsList, new Comparator<Map<String, String>>() {
-                    @Override
-                    public int compare(Map<String, String> o1, Map<String, String> o2) {
-                        return o2.get("dateTime").compareTo(o1.get("dateTime"));
-                    }
-                });
-
-                // Apply current filter
-                filterBookingsByStatus(tabLayout.getSelectedTabPosition());
-
-                // Stop refresh animation
-                swipeRefreshLayout.setRefreshing(false);
+                // Sort and display bookings
+                sortAndDisplayBookings();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(MyBookingsActivity.this,
-                        "Failed to load bookings: " + databaseError.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-                swipeRefreshLayout.setRefreshing(false);
+                handleDatabaseError(databaseError);
             }
         });
     }
 
-    // New method to fetch customer details if they're not already in the booking data
+    private void processBookingSnapshot(DataSnapshot bookingSnapshot, String bookingMode) {
+        String bookingId = bookingSnapshot.getKey();
+        String providerName = bookingSnapshot.child("providerName").getValue(String.class);
+        String serviceType = bookingSnapshot.child("serviceType").getValue(String.class);
+        String date = bookingSnapshot.child("date").getValue(String.class);
+        String time = bookingSnapshot.child("time").getValue(String.class);
+        String status = bookingSnapshot.child("status").getValue(String.class);
+        String providerId = bookingSnapshot.child("providerId").getValue(String.class);
+
+        // Get customer details
+        String customerId = bookingSnapshot.child("customerId").getValue(String.class);
+        String customerName = bookingSnapshot.child("customerName").getValue(String.class);
+
+        // If customerName is null or empty, fetch from database
+        if ((customerName == null || customerName.isEmpty()) && customerId != null) {
+            fetchCustomerDetails(bookingId, customerId);
+        }
+
+        if (serviceType != null && date != null && time != null && status != null) {
+            // Create booking map
+            Map<String, String> booking = new HashMap<>();
+            booking.put("bookingId", bookingId);
+            booking.put("serviceProvider", providerName != null ? providerName : "");
+            booking.put("serviceType", serviceType);
+            booking.put("dateTime", date + " at " + time);
+            booking.put("status", status);
+            booking.put("providerId", providerId != null ? providerId : "");
+            booking.put("customerId", customerId != null ? customerId : "");
+            booking.put("customerName", customerName != null ? customerName : "");
+            booking.put("userId", userId); // Current user ID
+            booking.put("bookingMode", bookingMode); // "providing" or "receiving"
+
+            bookingsList.add(booking);
+        }
+    }
+
+    private void sortAndDisplayBookings() {
+        // Sort bookings by date (most recent first)
+        Collections.sort(bookingsList, new Comparator<Map<String, String>>() {
+            @Override
+            public int compare(Map<String, String> o1, Map<String, String> o2) {
+                return o2.get("dateTime").compareTo(o1.get("dateTime"));
+            }
+        });
+
+        // Apply current filter
+        filterBookingsByStatus(tabLayout.getSelectedTabPosition());
+
+        // Stop refresh animation
+        swipeRefreshLayout.setRefreshing(false);
+    }
+
+    private void handleDatabaseError(DatabaseError databaseError) {
+        Toast.makeText(MyBookingsActivity.this,
+                "Failed to load bookings: " + databaseError.getMessage(),
+                Toast.LENGTH_SHORT).show();
+        swipeRefreshLayout.setRefreshing(false);
+    }
+
+    // Method to fetch customer details if they're not already in the booking data
     private void fetchCustomerDetails(final String bookingId, String customerId) {
         DatabaseReference customerRef = FirebaseDatabase.getInstance()
                 .getReference("customers").child(customerId);
