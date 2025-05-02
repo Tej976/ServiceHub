@@ -85,6 +85,8 @@ public class NotificationsActivity extends AppCompatActivity {
             bottomNavigationView.setLabelVisibilityMode(BottomNavigationView.LABEL_VISIBILITY_LABELED);
             bottomNavigationView.setOnNavigationItemSelectedListener(navListener);
         }
+        // FIX: Set the selected item to the notifications navigation item when this activity starts
+        bottomNavigationView.setSelectedItemId(R.id.nav_bottom_notifications);
 
         // Initialize notifications list
         notificationsList = new ArrayList<>();
@@ -136,6 +138,16 @@ public class NotificationsActivity extends AppCompatActivity {
                 loadNotifications();
             }
         });
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // FIX: Ensure the add tab stays selected when returning to this activity
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setSelectedItemId(R.id.nav_bottom_notifications);
+        }
     }
 
     private BottomNavigationView.OnNavigationItemSelectedListener navListener =

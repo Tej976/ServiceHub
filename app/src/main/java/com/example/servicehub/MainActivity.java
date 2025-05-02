@@ -96,14 +96,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // Set up bottom navigation
         bottomNav = findViewById(R.id.bottom_navigation);
-
-        // Fix 1: Always show labels by setting label visibility mode
-        bottomNav.setLabelVisibilityMode(BottomNavigationView.LABEL_VISIBILITY_LABELED);
-
+        bottomNav.setLabelVisibilityMode(BottomNavigationView.LABEL_VISIBILITY_LABELED);           // Always show labels by setting label visibility mode
         bottomNav.setOnNavigationItemSelectedListener(navListener);
-
-        // Fix 2: Set the selected item to home by default
-        bottomNav.setSelectedItemId(R.id.nav_bottom_home);
+        bottomNav.setSelectedItemId(R.id.nav_bottom_home);                     // Set the selected item to home by default
 
         // Set up Navigation Drawer
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);

@@ -82,6 +82,9 @@ public class MyBookingsActivity extends AppCompatActivity {
             bottomNavigationView.setOnNavigationItemSelectedListener(navListener);
         }
 
+        // FIX: Set the selected item to the add navigation item when this activity starts
+        bottomNavigationView.setSelectedItemId(R.id.nav_bottom_bookings);
+
         // Initialize TabLayout
         tabLayout = findViewById(R.id.tabLayout);
         tabLayout.addTab(tabLayout.newTab().setText("All"));
@@ -159,6 +162,17 @@ public class MyBookingsActivity extends AppCompatActivity {
             }
         });
     }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // FIX: Ensure the add tab stays selected when returning to this activity
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setSelectedItemId(R.id.nav_bottom_bookings);
+        }
+    }
+
 
     private BottomNavigationView.OnNavigationItemSelectedListener navListener =
             new BottomNavigationView.OnNavigationItemSelectedListener() {

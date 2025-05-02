@@ -91,9 +91,20 @@ public class AddActivity extends AppCompatActivity {
         if (bottomNavigationView != null) {
             bottomNavigationView.setLabelVisibilityMode(BottomNavigationView.LABEL_VISIBILITY_LABELED);
             bottomNavigationView.setOnNavigationItemSelectedListener(navListener);
+
+            // FIX: Set the selected item to the add navigation item when this activity starts
+            bottomNavigationView.setSelectedItemId(R.id.nav_bottom_add);
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // FIX: Ensure the add tab stays selected when returning to this activity
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setSelectedItemId(R.id.nav_bottom_add);
+        }
+    }
 
     private BottomNavigationView.OnNavigationItemSelectedListener navListener =
             new BottomNavigationView.OnNavigationItemSelectedListener() {
