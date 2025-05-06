@@ -121,7 +121,7 @@ public class MyBookingsActivity extends AppCompatActivity {
         bookingsListView.setAdapter(adapter);
         bookingsListView.setEmptyView(emptyView);
 
-        // Set item click listener
+        // Fixed onItemClick listener to properly handle booking navigation
         bookingsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -130,25 +130,25 @@ public class MyBookingsActivity extends AppCompatActivity {
                 String providerId = booking.get("providerId");
                 String bookingMode = booking.get("bookingMode");
 
-                // Start different activity based on user type and booking mode
-                if ("service_provider".equals(userType)) {
-                    // For service providers, check if they're providing or receiving this service
-                    if ("providing".equals(bookingMode)) {
-                        // Service provider viewing a booking they need to provide
-                        Intent intent = new Intent(MyBookingsActivity.this, BookingDetailsActivity.class);
-                        intent.putExtra("bookingId", bookingId);
-                        intent.putExtra("providerId", providerId);
-                        startActivity(intent);
-                    }
-                    else {
-                        // Service provider viewing a booking they've made as a customer
-                        Intent intent = new Intent(MyBookingsActivity.this, CustomerBookingDetailsActivity.class);
-                        intent.putExtra("bookingId", bookingId);
-                        startActivity(intent);
-                    }
-                }
-                else {
-                    // For customers, show booking details without accept/reject buttons
+                // Add logs to debug the navigation decision
+                android.util.Log.e("CRITICAL_NAV", "************************************");
+                android.util.Log.e("CRITICAL_NAV", "isProvidingMode flag: " + isProvidingMode);
+                android.util.Log.e("CRITICAL_NAV", "bookingMode: " + bookingMode);
+                android.util.Log.e("CRITICAL_NAV", "userType: " + userType);
+                android.util.Log.e("CRITICAL_NAV", "Tab index: " + providerRoleTabLayout.getSelectedTabPosition());
+                android.util.Log.e("CRITICAL_NAV", "************************************");
+
+                // Use the bookingMode from the selected booking to determine which activity to navigate to
+                if ("providing".equals(bookingMode)) {
+                    // If this is a service we are providing, go to BookingDetailsActivity
+                    android.util.Log.e("CRITICAL_NAV", "NAVIGATING TO: BookingDetailsActivity");
+                    Intent intent = new Intent(MyBookingsActivity.this, BookingDetailsActivity.class);
+                    intent.putExtra("bookingId", bookingId);
+                    intent.putExtra("providerId", providerId);
+                    startActivity(intent);
+                } else {
+                    // If this is a service we booked, go to CustomerBookingDetailsActivity
+                    android.util.Log.e("CRITICAL_NAV", "NAVIGATING TO: CustomerBookingDetailsActivity");
                     Intent intent = new Intent(MyBookingsActivity.this, CustomerBookingDetailsActivity.class);
                     intent.putExtra("bookingId", bookingId);
                     startActivity(intent);
@@ -214,12 +214,12 @@ public class MyBookingsActivity extends AppCompatActivity {
                 });
     }
 
-    // Set up the provider role tabs
+
     private void setupProviderRoleTabs() {
         // Show the provider role tab layout
         providerRoleTabLayout.setVisibility(View.VISIBLE);
 
-        // Clear existing tabs to avoid duplication if this method is called multiple times
+        // Clear existing tabs
         providerRoleTabLayout.removeAllTabs();
 
         // Add tabs
@@ -231,7 +231,16 @@ public class MyBookingsActivity extends AppCompatActivity {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 isProvidingMode = tab.getPosition() == 0;
-                loadBookings(); // Reload bookings with the new mode
+
+                android.util.Log.e("CRITICAL_TAB", "Tab selected: " + tab.getPosition());
+                android.util.Log.e("CRITICAL_TAB", "isProvidingMode set to: " + isProvidingMode);
+
+                // Clear lists
+                bookingsList.clear();
+                filteredBookingsList.clear();
+
+                // Reload with new mode
+                loadBookings();
             }
 
             @Override
@@ -245,6 +254,7 @@ public class MyBookingsActivity extends AppCompatActivity {
             }
         });
     }
+
 
     @Override
     protected void onResume() {
@@ -305,11 +315,15 @@ public class MyBookingsActivity extends AppCompatActivity {
                         if (bookingStatus.equalsIgnoreCase("cancelled") ||
                                 bookingStatus.equalsIgnoreCase("canceled") ||
                                 bookingStatus.equalsIgnoreCase("rejected")) {
-                            filteredBookingsList.add(booking);
+                            // Make a deep copy of the booking to ensure bookingMode is preserved
+                            Map<String, String> bookingCopy = new HashMap<>(booking);
+                            filteredBookingsList.add(bookingCopy);
                         }
                     } else if (bookingStatus.equalsIgnoreCase(status)) {
                         // For other tabs, use exact status matching
-                        filteredBookingsList.add(booking);
+                        // Make a deep copy of the booking to ensure bookingMode is preserved
+                        Map<String, String> bookingCopy = new HashMap<>(booking);
+                        filteredBookingsList.add(bookingCopy);
                     }
                 }
             }
@@ -332,9 +346,16 @@ public class MyBookingsActivity extends AppCompatActivity {
             }
         }
 
+        // Debug the filtered list
+        for (int i = 0; i < filteredBookingsList.size(); i++) {
+            Map<String, String> booking = filteredBookingsList.get(i);
+            android.util.Log.d("FilteredList", "Item " + i + " - BookingMode: " + booking.get("bookingMode"));
+        }
+
         // Notify adapter of data change
         adapter.notifyDataSetChanged();
     }
+
 
     private void loadBookings() {
         if (userId == null) {
@@ -382,6 +403,7 @@ public class MyBookingsActivity extends AppCompatActivity {
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                         for (DataSnapshot bookingSnapshot : dataSnapshot.getChildren()) {
+                                            // Always set bookingMode to "providing" for provider bookings
                                             processBookingSnapshot(bookingSnapshot, "providing");
                                         }
 
@@ -408,6 +430,7 @@ public class MyBookingsActivity extends AppCompatActivity {
                 });
     }
 
+
     private void loadCustomerBookings() {
         DatabaseReference bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
         Query query = bookingsRef.orderByChild("customerId").equalTo(userId);
@@ -416,6 +439,7 @@ public class MyBookingsActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot bookingSnapshot : dataSnapshot.getChildren()) {
+                    // Always set bookingMode to "receiving" for customer bookings
                     processBookingSnapshot(bookingSnapshot, "receiving");
                 }
 
@@ -460,7 +484,9 @@ public class MyBookingsActivity extends AppCompatActivity {
             booking.put("customerId", customerId != null ? customerId : "");
             booking.put("customerName", customerName != null ? customerName : "");
             booking.put("userId", userId); // Current user ID
-            booking.put("bookingMode", bookingMode); // "providing" or "receiving"
+
+            // Explicitly set the bookingMode - this is critical for correct navigation
+            booking.put("bookingMode", bookingMode);
 
             bookingsList.add(booking);
         }
