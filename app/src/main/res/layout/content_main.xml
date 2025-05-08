@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".MainActivity"
     tools:showIn="@layout/app_bar_main">
 
@@ -17,44 +16,62 @@
         <FrameLayout
             android:id="@+id/fragment_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+            android:layout_height="match_parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="16dp"
+                android:background="#F5F5F5">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Services"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="8dp"/>
+                <!-- Decorated image -->
+                <ImageView
+                    android:id="@+id/services_icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+                    android:src="@drawable/servicehub"
+                    android:scaleType="centerCrop"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/image_card_bg"
+                    android:elevation="6dp"
+                    android:contentDescription="Service Icon" />
 
-                <!-- Horizontal scrollable cards -->
-                  <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/services_recycler_view"
+                <!-- RecyclerView inside CardView -->
+                <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:clipToPadding="false"
-                    android:paddingVertical="4dp" />
+                    android:layout_marginBottom="16dp"
+                    android:layout_marginTop="8dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp">
 
-                <!-- You can add additional sections below -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/services_recycler_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:clipToPadding="false"
+                        android:paddingVertical="8dp"
+                        android:paddingHorizontal="8dp"
+                        android:background="#FFFFFF"
+                        android:contentDescription="List of services available in the app." /> <!-- Added contentDescription -->
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- Hidden User Type Text -->
                 <TextView
                     android:id="@+id/textViewUserType"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="8dp"
                     android:text="Account Type"
                     android:visibility="gone" />
 
             </LinearLayout>
         </FrameLayout>
 
+        <!-- Bottom Navigation -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottom_navigation"
             android:layout_width="match_parent"
