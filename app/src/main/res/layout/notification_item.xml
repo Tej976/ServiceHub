@@ -3,14 +3,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp">
+    android:layout_margin="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="8dp"
+    app:cardBackgroundColor="@android:color/white"
+    android:foreground="?android:attr/selectableItemBackground">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:background="@drawable/notification_card_bg">
 
         <View
             android:id="@+id/notificationReadIndicator"
@@ -20,7 +23,8 @@
             android:layout_alignParentTop="true"
             android:layout_marginEnd="8dp"
             android:background="@drawable/notification_indicator"
-            android:tag="read" /> <!-- Will be dynamically set -->
+            android:tag="read"
+            android:elevation="2dp" />
 
         <TextView
             android:id="@+id/textViewNotificationTitle"
@@ -28,9 +32,10 @@
             android:layout_height="wrap_content"
             android:layout_toEndOf="@id/notificationReadIndicator"
             android:text="Notification Title"
-            android:textColor="@android:color/black"
+            android:textColor="#222222"
             android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium" />
 
         <TextView
             android:id="@+id/textViewNotificationMessage"
@@ -40,7 +45,7 @@
             android:layout_marginTop="4dp"
             android:layout_toEndOf="@id/notificationReadIndicator"
             android:text="Notification message goes here. This can be a longer description."
-            android:textColor="@android:color/darker_gray"
+            android:textColor="#555555"
             android:textSize="14sp" />
 
         <TextView
@@ -51,9 +56,8 @@
             android:layout_alignParentEnd="true"
             android:layout_marginTop="8dp"
             android:text="Apr 30, 2025 10:30"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="#888888"
             android:textSize="12sp" />
 
     </RelativeLayout>
-
 </androidx.cardview.widget.CardView>
