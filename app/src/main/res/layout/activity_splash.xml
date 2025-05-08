@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E4D9F6"
+    android:background="@drawable/card_background"
     tools:context=".SplashActivity">
 
     <!-- Container for splash elements to animate together -->
