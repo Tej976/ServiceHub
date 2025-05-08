@@ -33,8 +33,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp">
+                app:cardCornerRadius="12dp"
+                app:cardElevation="6dp"
+                android:backgroundTint="@android:color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -46,15 +47,17 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Service Provider Details"
-                        android:textSize="16sp"
+                        android:textSize="18sp"
                         android:textStyle="bold"
+                        android:textColor="#333333"
                         android:layout_marginBottom="8dp"/>
 
                     <TextView
                         android:id="@+id/tvProviderName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textSize="18sp"
+                        android:textSize="17sp"
+                        android:textColor="#000000"
                         android:textStyle="bold"
                         tools:text="John's Plumbing Service" />
 
@@ -63,6 +66,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
+                        android:textColor="#555555"
                         tools:text="Service: Plumbing" />
 
                     <TextView
@@ -70,6 +74,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
+                        android:textColor="#555555"
                         tools:text="Phone: 123-456-7890" />
 
                     <TextView
@@ -77,17 +82,19 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
+                        android:textColor="#555555"
                         tools:text="Address: 123 Main St, City" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-
+            <!-- Date and Time Selection -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Select Date and Time"
                 android:textSize="18sp"
                 android:textStyle="bold"
+                android:textColor="#333333"
                 android:layout_marginBottom="8dp"
                 android:layout_marginTop="8dp"/>
 
@@ -103,7 +110,9 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    android:text="Select Date" />
+                    android:text="Select Date"
+                    android:textColor="@android:color/white"
+                    android:backgroundTint="#2196F3" />
 
                 <Button
                     android:id="@+id/btnSelectTime"
@@ -111,14 +120,19 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    android:text="Select Time" />
+                    android:text="Select Time"
+                    android:textColor="@android:color/white"
+                    android:backgroundTint="#2196F3" />
             </LinearLayout>
 
+            <!-- Special Requirements -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Special Requirements (Optional)"
-                android:textSize="14sp" />
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:layout_marginBottom="4dp"/>
 
             <EditText
                 android:id="@+id/etRequirements"
@@ -128,16 +142,24 @@
                 android:inputType="textMultiLine"
                 android:minLines="3"
                 android:gravity="top|start"
-                android:layout_marginBottom="24dp"/>
+                android:background="@drawable/edittext_round_corners"
+                android:textColor="#000000"
+                android:textSize="15sp"
+                android:layout_marginBottom="24dp" />
 
+            <!-- Confirm Button -->
             <Button
                 android:id="@+id/btnConfirmBooking"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Confirm Booking"
                 android:textSize="16sp"
+                android:textColor="@android:color/white"
+                android:backgroundTint="#4CAF50"
                 android:padding="12dp" />
 
         </LinearLayout>
     </ScrollView>
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
