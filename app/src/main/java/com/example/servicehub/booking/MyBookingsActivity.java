@@ -49,6 +49,7 @@ public class MyBookingsActivity extends AppCompatActivity {
     // Add a new tab for service providers to switch between providing and receiving
     private TabLayout providerRoleTabLayout;
     private boolean isProvidingMode = true; // Default to showing services to provide
+    private boolean isServiceProviderUser = false; // Track if user is a service provider
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,8 +175,8 @@ public class MyBookingsActivity extends AppCompatActivity {
             }
         });
 
-        // Load bookings
-        loadBookings();
+        // For now, don't load bookings yet - we'll do it after checking if user is a service provider
+        // loadBookings();
 
         // Set up swipe to refresh
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -195,14 +196,16 @@ public class MyBookingsActivity extends AppCompatActivity {
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        boolean isServiceProvider = dataSnapshot.exists();
+                        isServiceProviderUser = dataSnapshot.exists();
 
-                        if (isServiceProvider) {
+                        if (isServiceProviderUser) {
                             // This user is a service provider, show the provider role tab layout
                             setupProviderRoleTabs();
                         } else {
                             // This user is only a customer, hide the provider role tab layout
                             providerRoleTabLayout.setVisibility(View.GONE);
+                            // For regular customers, just load their bookings
+                            loadBookings();
                         }
                     }
 
@@ -210,6 +213,8 @@ public class MyBookingsActivity extends AppCompatActivity {
                     public void onCancelled(@NonNull DatabaseError databaseError) {
                         // On error, default to hiding the provider role tabs
                         providerRoleTabLayout.setVisibility(View.GONE);
+                        // Still load bookings as a regular customer
+                        loadBookings();
                     }
                 });
     }
@@ -253,6 +258,9 @@ public class MyBookingsActivity extends AppCompatActivity {
                 // Do nothing
             }
         });
+
+        // Load bookings initially after tabs are set up
+        loadBookings();
     }
 
 
@@ -275,7 +283,7 @@ public class MyBookingsActivity extends AppCompatActivity {
             filteredBookingsList.addAll(bookingsList);
 
             // Update empty view message based on user type and mode
-            if ("service_provider".equals(userType)) {
+            if ("service_provider".equals(userType) || isServiceProviderUser) {
                 if (isProvidingMode) {
                     emptyView.setText(bookingsList.isEmpty() ? "No service requests from customers yet" : "No bookings found");
                 } else {
@@ -329,7 +337,7 @@ public class MyBookingsActivity extends AppCompatActivity {
             }
 
             // Update empty view message
-            if ("service_provider".equals(userType)) {
+            if ("service_provider".equals(userType) || isServiceProviderUser) {
                 String rolePrefix = isProvidingMode ? "to provide" : "booked";
 
                 if (isCancelledTab) {
@@ -366,8 +374,11 @@ public class MyBookingsActivity extends AppCompatActivity {
 
         bookingsList.clear();
 
-        // Check if provider tabs are visible and use the current mode
-        if (providerRoleTabLayout.getVisibility() == View.VISIBLE) {
+        // Start the loading animation
+        swipeRefreshLayout.setRefreshing(true);
+
+        // If the user is a service provider, load based on selected tab
+        if (isServiceProviderUser) {
             if (isProvidingMode) {
                 // Load bookings where this user is the provider
                 loadProviderBookings();

@@ -25,17 +25,40 @@
                 android:padding="16dp"
                 android:background="#F5F5F5">
 
-                <!-- Decorated image -->
-                <ImageView
-                    android:id="@+id/services_icon"
+                <!-- Decorated image with rounded corners and shadow -->
+                <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
-                    android:layout_height="150dp"
-                    android:src="@drawable/servicehub"
-                    android:scaleType="centerCrop"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="50dp"
                     android:layout_marginBottom="16dp"
-                    android:background="@drawable/image_card_bg"
-                    android:elevation="6dp"
-                    android:contentDescription="Service Icon" />
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="8dp">
+
+                    <ImageView
+                        android:id="@+id/services_icon"
+                        android:layout_width="match_parent"
+                        android:layout_height="150dp"
+                        android:src="@drawable/servicehub"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="Service Icon" />
+                </androidx.cardview.widget.CardView>
+
+                <!-- Stylized SearchView inside CardView -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="6dp">
+
+                    <SearchView
+                        android:id="@+id/searchView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:queryHint="Search services..."
+                        android:iconifiedByDefault="false"
+                        android:background="@android:color/transparent" />
+                </androidx.cardview.widget.CardView>
 
                 <!-- RecyclerView inside CardView -->
                 <androidx.cardview.widget.CardView
@@ -55,8 +78,7 @@
                         android:paddingVertical="8dp"
                         android:paddingHorizontal="8dp"
                         android:background="#FFFFFF"
-                        android:contentDescription="List of services available in the app." /> <!-- Added contentDescription -->
-
+                        android:contentDescription="List of services available in the app." />
                 </androidx.cardview.widget.CardView>
 
                 <!-- Hidden User Type Text -->
@@ -67,7 +89,6 @@
                     android:layout_marginTop="8dp"
                     android:text="Account Type"
                     android:visibility="gone" />
-
             </LinearLayout>
         </FrameLayout>
 

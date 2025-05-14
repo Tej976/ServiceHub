@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,11 +25,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,12 +41,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private RecyclerView servicesRecyclerView;
     private ServiceAdapter serviceAdapter;
     private List<ServiceItem> serviceList;
+    private List<ServiceItem> filteredList;
     private BottomNavigationView bottomNav;
     private BottomNavigationHandler navigationHandler;
 
     private FirebaseAuth mAuth;
     private static final String PREF_NAME = "AppPrefs";
     private static final String FIRST_RUN_KEY = "isFirstRun";
+
+    private SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,86 +60,89 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
-
-        // Set up the toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Initialize UI elements
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
-
-        // Initialize services RecyclerView
         servicesRecyclerView = findViewById(R.id.services_recycler_view);
-        servicesRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        searchView = findViewById(R.id.searchView);
 
-        // Create sample service items
+        servicesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
         createServiceList();
+        filteredList = new ArrayList<>(serviceList);
 
-        // Setup adapter
-        serviceAdapter = new ServiceAdapter(this, serviceList);
+        serviceAdapter = new ServiceAdapter(this, filteredList);
         servicesRecyclerView.setAdapter(serviceAdapter);
 
-        // Set click listener for service items
         serviceAdapter.setOnItemClickListener(position -> {
-            String serviceName = serviceList.get(position).getTitle();
-
+            String serviceName = filteredList.get(position).getTitle();
             Intent intent = new Intent(MainActivity.this, ServiceProvidersActivity.class);
             intent.putExtra("serviceName", serviceName);
-            intent.putExtra("userId",userId);
-            intent.putExtra("userType",userType);
+            intent.putExtra("userId", userId);
+            intent.putExtra("userType", userType);
             startActivity(intent);
-
         });
 
-        // Set up bottom navigation
-        bottomNav = findViewById(R.id.bottom_navigation);
-
-        // Get userId and userType from intent
         userId = getIntent().getStringExtra("userId");
         userType = getIntent().getStringExtra("userType");
 
-        // If userId or userType is null, redirect to login
         if (userId == null || userType == null) {
             FirebaseUser currentUser = mAuth.getCurrentUser();
             if (currentUser != null) {
-                // User is authenticated but we don't have userId or userType - log out and redirect
                 mAuth.signOut();
             }
             redirectToLogin();
             return;
         }
 
-        // Initialize the BottomNavigationHandler
+        bottomNav = findViewById(R.id.bottom_navigation);
         navigationHandler = new BottomNavigationHandler(this, bottomNav, userId, userType);
         navigationHandler.setSelectedItem(R.id.nav_bottom_home);
 
-        // Set up Navigation Drawer
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
 
-        // Load user data based on user type
         loadUserData();
 
-        // Update the header view in navigation drawer
-        View headerView = navigationView.getHeaderView(0);
-        TextView navUsername = headerView.findViewById(R.id.nav_header_name);
-        TextView navUserType = headerView.findViewById(R.id.nav_header_userType);
-
-        // In your MainActivity or Application class
         Intent serviceIntent = new Intent(this, com.example.servicehub.notifications.NotificationService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(serviceIntent);
         } else {
             startService(serviceIntent);
         }
+
+        // 🔍 Setup SearchView filtering
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                filterServices(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterServices(newText);
+                return true;
+            }
+        });
     }
 
-    // Create list of service items
+    private void filterServices(String query) {
+        filteredList.clear();
+        for (ServiceItem item : serviceList) {
+            if (item.getTitle().toLowerCase().contains(query.toLowerCase())) {
+                filteredList.add(item);
+            }
+        }
+        serviceAdapter.notifyDataSetChanged();
+    }
+
     private void createServiceList() {
         serviceList = new ArrayList<>();
         serviceList.add(new ServiceItem("Room Cleaning", R.drawable.i_roomcleaning));
@@ -154,45 +157,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         serviceList.add(new ServiceItem("Moving", R.drawable.i_security));
         serviceList.add(new ServiceItem("AC Repair", R.drawable.i_acrepairs));
         serviceList.add(new ServiceItem("Security", R.drawable.i_security));
-
-        // Add more services as needed
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Fix 2: Always reset bottom navigation to home when returning to MainActivity
-        if (navigationHandler != null) {
-            navigationHandler.setSelectedItem(R.id.nav_bottom_home);
-        }
-    }
-
-    /* Check if this is the first run after installation. If it is, clear any system-stored back stack information */
-
-    private void checkIfFirstRun() {
-        SharedPreferences preferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-        boolean isFirstRun = preferences.getBoolean(FIRST_RUN_KEY, true);
-
-        if (isFirstRun) {
-            // This is the first run after installation
-            // Clear any potential activity stack by setting appropriate flags
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-
-            // Save that the app has been run
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putBoolean(FIRST_RUN_KEY, false);
-            editor.apply();
-
-            // Finish this instance of MainActivity
-            finish();
-            return;
-        }
+    private void redirectToLogin() {
+        Intent intent = new Intent(MainActivity.this, SplashActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     private void loadUserData() {
-        // Get user's name from database based on user type
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference userRef;
 
@@ -207,16 +181,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     String name = dataSnapshot.getValue(String.class);
-
-                    // Also update the name in the navigation header
                     View headerView = navigationView.getHeaderView(0);
                     TextView navUsername = headerView.findViewById(R.id.nav_header_name);
                     navUsername.setText(name);
-
-                    // set the userType in the navigation header
                     TextView navUserType = headerView.findViewById(R.id.nav_header_userType);
-                    //format the userType i.e. capitalize the first letter
-                    String formattedUsertype = userType.substring(0,1).toUpperCase()+ userType.substring(1);
+                    String formattedUsertype = userType.substring(0, 1).toUpperCase() + userType.substring(1);
                     navUserType.setText(formattedUsertype);
                 }
             }
@@ -228,64 +197,39 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
-    private void redirectToLogin() {
-        Intent intent = new Intent(MainActivity.this, SplashActivity.class);
-        // Clear the existing activity stack to ensure a clean start
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
-    }
-
     @Override
-    protected void onStart() {
-        super.onStart();
-        // Check if user is still authenticated
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
-            redirectToLogin();
+    protected void onResume() {
+        super.onResume();
+        if (navigationHandler != null) {
+            navigationHandler.setSelectedItem(R.id.nav_bottom_home);
         }
     }
 
-
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        // Handle navigation view item clicks here
         int id = item.getItemId();
 
         if (id == R.id.nav_profile) {
-            // Handle the view profile action
             Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
             intent.putExtra("userId", userId);
             intent.putExtra("userType", userType);
             startActivity(intent);
-        }
-        else if (id == R.id.nav_toggle_theme) {
-            // Toggle the theme when user clicks this menu item
+        } else if (id == R.id.nav_toggle_theme) {
             themeManager.toggleTheme(this);
-            // Update the menu item text based on current theme
             item.setTitle(themeManager.isDarkMode() ? "Switch to Light Theme" : "Switch to Dark Theme");
-        }
-        else if (id == R.id.nav_logout) {
-            // Handle the logout action
+        } else if (id == R.id.nav_logout) {
             mAuth.signOut();
-
-            // Clear app preferences on logout to ensure a clean state
             SharedPreferences preferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.clear();
-            editor.apply();
-
+            preferences.edit().clear().apply();
             redirectToLogin();
         }
 
-        // Close the drawer after handling the action
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
 
     @Override
     public void onBackPressed() {
-        // Close drawer on back press if it's open, otherwise perform normal back action
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else {
