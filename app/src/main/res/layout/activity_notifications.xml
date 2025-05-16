@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".notifications.NotificationsActivity">
 
+    <!-- AppBar -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="0dp"
@@ -21,9 +22,9 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
-
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- Enhanced SwipeRefreshLayout with attractive ListView & empty view -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="0dp"
@@ -35,29 +36,39 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:padding="12dp">
 
             <ListView
                 android:id="@+id/listViewNotifications"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:divider="@null"
-                android:dividerHeight="0dp" />
+                android:divider="@android:color/transparent"
+                android:dividerHeight="12dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:clipToPadding="false"
+                android:background="@android:color/white"
+                android:scrollbarStyle="outsideOverlay"
+                android:overScrollMode="ifContentScrolls" />
 
             <TextView
                 android:id="@+id/emptyNotificationsView"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 android:gravity="center"
-                android:text="No notifications yet"
-                android:textSize="16sp"
-                android:visibility="gone" />
-
+                android:text="🔔 No notifications yet!"
+                android:textColor="#9E9E9E"
+                android:textSize="18sp"
+                android:fontFamily="sans-serif-medium"
+                android:visibility="gone"
+                android:padding="16dp"
+                android:background="@drawable/rounded_empty_bg" />
         </RelativeLayout>
-
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
+    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="0dp"

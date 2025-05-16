@@ -4,10 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="12dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="8dp"
-    app:cardBackgroundColor="@android:color/white"
-    android:foreground="?android:attr/selectableItemBackground">
+    android:foreground="?android:attr/selectableItemBackground"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="12dp"
+    app:cardBackgroundColor="@android:color/white">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -15,6 +15,7 @@
         android:padding="16dp"
         android:background="@drawable/notification_card_bg">
 
+        <!-- Read/Unread Indicator -->
         <View
             android:id="@+id/notificationReadIndicator"
             android:layout_width="12dp"
@@ -23,9 +24,10 @@
             android:layout_alignParentTop="true"
             android:layout_marginEnd="8dp"
             android:background="@drawable/notification_indicator"
-            android:tag="read"
-            android:elevation="2dp" />
+            android:elevation="2dp"
+            android:tag="read" />
 
+        <!-- Notification Title -->
         <TextView
             android:id="@+id/textViewNotificationTitle"
             android:layout_width="match_parent"
@@ -37,17 +39,19 @@
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium" />
 
+        <!-- Notification Message -->
         <TextView
             android:id="@+id/textViewNotificationMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/textViewNotificationTitle"
-            android:layout_marginTop="4dp"
             android:layout_toEndOf="@id/notificationReadIndicator"
+            android:layout_marginTop="4dp"
             android:text="Notification message goes here. This can be a longer description."
             android:textColor="#555555"
             android:textSize="14sp" />
 
+        <!-- Timestamp -->
         <TextView
             android:id="@+id/textViewNotificationTime"
             android:layout_width="wrap_content"
